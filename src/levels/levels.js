@@ -147,9 +147,9 @@ export const LEVELS = [
     target: {
       cells: [
         { x: 0, y: 0, tileType: 'soil', cropType: 'carrot' },
-        { x: 1, y: 0, tileType: 'grass', cropType: null },
+        { x: 1, y: 0, tileType: 'soil', cropType: 'carrot' },
         { x: 2, y: 0, tileType: 'soil', cropType: 'carrot' },
-        { x: 3, y: 0, tileType: 'grass', cropType: null },
+        { x: 3, y: 0, tileType: 'soil', cropType: 'carrot' },
         { x: 4, y: 0, tileType: 'soil', cropType: 'carrot' },
       ],
     },

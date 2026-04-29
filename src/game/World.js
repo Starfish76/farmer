@@ -3,14 +3,14 @@ import { createCrop, updateGrowthStage } from './Crop.js';
 import { Tile } from './Tiles.js';
 
 const DEFAULT_GRID = [
-  ['grass', 'grass', 'grass', 'rock', 'water', 'water', 'grass', 'grass'],
-  ['grass', 'soil', 'soil', 'grass', 'rock', 'water', 'grass', 'grass'],
-  ['grass', 'soil', 'soil', 'grass', 'grass', 'grass', 'grass', 'rock'],
-  ['grass', 'grass', 'grass', 'grass', 'soil', 'soil', 'grass', 'grass'],
-  ['water', 'water', 'rock', 'grass', 'soil', 'soil', 'grass', 'grass'],
-  ['water', 'rock', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass'],
-  ['grass', 'grass', 'grass', 'soil', 'soil', 'rock', 'water', 'water'],
-  ['grass', 'grass', 'grass', 'soil', 'soil', 'grass', 'water', 'rock'],
+  ['soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil'],
+  ['soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil'],
+  ['soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil'],
+  ['soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil'],
+  ['soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil'],
+  ['soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil'],
+  ['soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil'],
+  ['soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil'],
 ];
 
 export class World {
@@ -26,7 +26,7 @@ export class World {
       const row = [];
 
       for (let x = 0; x < GRID_SIZE; x += 1) {
-        row.push(new Tile(x, y, grid[y][x]));
+        row.push(new Tile(x, y, 'soil'));
       }
 
       this.grid.push(row);
@@ -93,7 +93,7 @@ export class World {
   isWalkable(x, y) {
     const tile = this.getTile(x, y);
     if (!tile) return false;
-    return tile.type !== 'water' && tile.type !== 'rock';
+    return tile.type === 'soil';
   }
 
   isInside(x, y) {

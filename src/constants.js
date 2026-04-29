@@ -4,7 +4,7 @@ export const TILE_H = 36;
 
 export const TILE_COLORS = {
   grass: '#4a7c59',
-  soil: '#8b5a2b',
+  soil: '#4a7c59',
   water: '#3b82f6',
   rock: '#6b7280'
 };
