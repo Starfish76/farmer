@@ -42,6 +42,28 @@ const LEVEL_4_GRID = [
   ['grass', 'grass', 'grass', 'soil', 'soil', 'grass', 'water', 'rock'],
 ];
 
+const LEVEL_5_GRID = [
+  ['soil', 'grass', 'soil', 'grass', 'soil', 'grass', 'grass', 'grass'],
+  ['grass', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass'],
+  ['grass', 'rock', 'grass', 'water', 'grass', 'grass', 'grass', 'grass'],
+  ['grass', 'grass', 'grass', 'water', 'grass', 'soil', 'soil', 'grass'],
+  ['water', 'water', 'grass', 'grass', 'grass', 'soil', 'soil', 'grass'],
+  ['grass', 'rock', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass'],
+  ['grass', 'grass', 'grass', 'soil', 'soil', 'rock', 'water', 'water'],
+  ['grass', 'grass', 'grass', 'soil', 'soil', 'grass', 'water', 'rock'],
+];
+
+const LEVEL_6_GRID = [
+  ['soil', 'soil', 'soil', 'soil', 'soil', 'water', 'rock', 'grass'],
+  ['grass', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass'],
+  ['grass', 'rock', 'grass', 'water', 'grass', 'grass', 'grass', 'grass'],
+  ['grass', 'grass', 'grass', 'water', 'grass', 'soil', 'soil', 'grass'],
+  ['water', 'water', 'grass', 'grass', 'grass', 'soil', 'soil', 'grass'],
+  ['grass', 'rock', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass'],
+  ['grass', 'grass', 'grass', 'soil', 'soil', 'rock', 'water', 'water'],
+  ['grass', 'grass', 'grass', 'soil', 'soil', 'grass', 'water', 'rock'],
+];
+
 export const LEVELS = [
   {
     id: 1,
@@ -110,5 +132,62 @@ export const LEVELS = [
     winConditionType: 'plant_carrot',
     hint: 'Use Repeat 5 with plant_carrot() and move().',
     requiredBlocks: ['for i in range(5):', 'plant("carrot")', 'move()'],
+  },
+  {
+    id: 5,
+    title: 'Level 5: Smart Farming',
+    description: 'Plant carrot only on soil in a mixed row.',
+    mission: 'Plant carrot only on soil tiles in the mixed row.',
+    learningGoal: 'Use an if statement to run code only when a condition is true.',
+    pythonConcept: 'An if statement checks a condition before running its child code.',
+    initialCoins: 80,
+    grid: LEVEL_5_GRID,
+    robotStart: { x: 0, y: 0 },
+    robotDirection: 'east',
+    target: {
+      cells: [
+        { x: 0, y: 0, tileType: 'soil', cropType: 'carrot' },
+        { x: 1, y: 0, tileType: 'grass', cropType: null },
+        { x: 2, y: 0, tileType: 'soil', cropType: 'carrot' },
+        { x: 3, y: 0, tileType: 'grass', cropType: null },
+        { x: 4, y: 0, tileType: 'soil', cropType: 'carrot' },
+      ],
+    },
+    unlockedBlocks: ['move', 'turn_left', 'turn_right', 'plant_carrot', 'repeat_5', 'if_on_soil'],
+    winConditionType: 'smart_carrot_row',
+    hint: 'Put plant_carrot() inside if_on_soil, then move forward each turn.',
+    requiredBlocks: ['for i in range(5):', 'if on_soil():', 'plant("carrot")', 'move()'],
+  },
+  {
+    id: 6,
+    title: 'Level 6: Harvest Algorithm',
+    description: 'Harvest grown crops while checking conditions before acting.',
+    mission: 'Harvest all grown carrot crops.',
+    learningGoal: 'Combine conditions, loops, and algorithmic thinking.',
+    pythonConcept: 'Conditions and loops work together to make an algorithm adapt to state.',
+    initialCoins: 100,
+    grid: LEVEL_6_GRID,
+    robotStart: { x: 0, y: 0 },
+    robotDirection: 'east',
+    target: {
+      cropPositions: [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: 2, y: 0 },
+        { x: 3, y: 0 },
+        { x: 4, y: 0 },
+      ],
+    },
+    initialCrops: [
+      { x: 0, y: 0, type: 'carrot', stage: 'grown' },
+      { x: 1, y: 0, type: 'carrot', stage: 'grown' },
+      { x: 2, y: 0, type: 'carrot', stage: 'grown' },
+      { x: 3, y: 0, type: 'carrot', stage: 'grown' },
+      { x: 4, y: 0, type: 'carrot', stage: 'grown' },
+    ],
+    unlockedBlocks: ['move', 'turn_left', 'turn_right', 'water', 'harvest', 'repeat_5', 'if_front_clear', 'if_crop_ready'],
+    winConditionType: 'harvest_all_target_crops',
+    hint: 'Use if_crop_ready to harvest only when a crop is ready. Use if_front_clear before moving.',
+    requiredBlocks: ['for i in range(5):', 'if crop_ready():', 'harvest()', 'if front_clear():', 'move()'],
   },
 ];

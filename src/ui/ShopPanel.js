@@ -20,6 +20,7 @@ export class ShopPanel {
       const isOwned = this.shop.isPurchased(block.id);
       const card = document.createElement('article');
       card.className = 'block-card';
+      card.dataset.category = block.category;
 
       card.innerHTML = `
         <div>
@@ -48,6 +49,7 @@ export class ShopPanel {
     for (const block of this.shop.getOwnedBlocks()) {
       const button = document.createElement('button');
       button.className = 'owned-block';
+      button.dataset.category = block.category;
       button.type = 'button';
       button.textContent = block.name;
       button.title = `Add ${block.name} to Program`;

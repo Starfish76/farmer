@@ -11,8 +11,10 @@ import { ProgramPanel } from '../ui/ProgramPanel.js';
 import { ShopPanel } from '../ui/ShopPanel.js';
 import { UIManager } from '../ui/UIManager.js';
 import { CommandQueue } from './CommandQueue.js';
+import { CROPS } from './Crop.js';
 import { Renderer } from './Renderer.js';
 import { Robot } from './Robot.js';
+import { StorageManager } from './StorageManager.js';
 import { World } from './World.js';
 
 export class GameEngine {
@@ -30,6 +32,8 @@ export class GameEngine {
       currentLevelIndex: 0,
       levelComplete: false,
       harvestedWheatCount: 0,
+      highestUnlockedLevel: 1,
+      completedLevels: [],
       logs: [],
       purchasedBlocks: [],
       programBlocks: [],
@@ -40,6 +44,8 @@ export class GameEngine {
     this.ui = new UIManager(this.gameState);
     this.economy = new Economy(this.gameState);
     this.levelManager = new LevelManager(this.gameState);
+    this.storage = new StorageManager();
+    const savedData = this.restoreSavedState();
     this.blockShop = new BlockShop(this.gameState);
     this.blockProgram = new BlockProgram(this.gameState);
     this.codeGenerator = new CodeGenerator();
@@ -78,10 +84,15 @@ export class GameEngine {
       onPrevious: () => this.previousLevel(),
       onNext: () => this.nextLevel(),
       onReset: () => this.resetLevel(),
+      onResetAll: () => this.resetAll(),
     });
 
     this.initButtons();
-    this.applyLevel(this.levelManager.currentLevel);
+    this.applyLevel(this.levelManager.currentLevel, {
+      coinsOverride: savedData?.coins,
+      save: false,
+    });
+    this.saveProgress();
     window.addEventListener('resize', () => this.renderer.resize());
   }
 
@@ -92,8 +103,24 @@ export class GameEngine {
     document.getElementById('btn-reset').addEventListener('click', () => this.resetLevel());
   }
 
-  applyLevel(level) {
+  restoreSavedState() {
+    const savedData = this.storage.load();
+    if (!savedData) return null;
+
+    const savedLevelIndex = this.levelManager.levels.findIndex((level) => level.id === savedData.currentLevel);
+    this.gameState.currentLevelIndex = savedLevelIndex >= 0 ? savedLevelIndex : 0;
+    this.gameState.currentLevel = this.levelManager.currentLevel.id;
+    this.gameState.coins = Number.isFinite(savedData.coins) ? savedData.coins : this.levelManager.currentLevel.initialCoins;
+    this.gameState.purchasedBlocks = Array.isArray(savedData.purchasedBlocks) ? [...savedData.purchasedBlocks] : [];
+    this.gameState.highestUnlockedLevel = savedData.highestUnlockedLevel ?? this.gameState.currentLevel;
+    this.gameState.completedLevels = Array.isArray(savedData.completedLevels) ? [...savedData.completedLevels] : [];
+    return savedData;
+  }
+
+  applyLevel(level, options = {}) {
+    const now = performance.now();
     this.world.loadGrid(level.grid);
+    this.applyInitialCrops(level, now);
     this.robot.reset({
       x: level.robotStart.x,
       y: level.robotStart.y,
@@ -107,12 +134,25 @@ export class GameEngine {
     this.gameState.harvestedWheatCount = 0;
     this.gameState.unlockedBlocks = [...level.unlockedBlocks];
     this.gameState.score = 0;
-    this.economy.setCoins(level.initialCoins);
+    this.economy.setCoins(options.coinsOverride ?? level.initialCoins);
     this.blockShop.ensureFreeBlocksOwned();
     this.setState(GAME_STATE.STOPPED);
     this.ui.updateStats(this.gameState);
     this.renderPanels();
     this.ui.addLog(`Loaded ${level.title}`);
+    if (options.save !== false) {
+      this.saveProgress();
+    }
+  }
+
+  applyInitialCrops(level, now) {
+    for (const crop of level.initialCrops ?? []) {
+      const duration = CROPS[crop.type]?.growthDurationSeconds ?? 0;
+      const plantedAt = crop.stage === 'grown' ? now - duration * 1000 : now;
+      this.world.plantCropAt(crop.x, crop.y, crop.type, plantedAt);
+    }
+
+    this.world.updateAllCrops(now);
   }
 
   purchaseBlock(blockId) {
@@ -120,6 +160,7 @@ export class GameEngine {
     this.ui.addLog(result.message);
     this.ui.updateStats(this.gameState);
     this.renderPanels();
+    this.saveProgress();
   }
 
   addProgramBlock(blockId) {
@@ -170,13 +211,14 @@ export class GameEngine {
   }
 
   renderPanels() {
+    const canAdvance = this.canAdvanceFromCurrentLevel();
     this.shopPanel.render();
     this.programPanel.render();
     this.codePreviewPanel.render();
     this.missionPanel.render(this.levelManager.currentLevel, {
       canGoPrevious: this.levelManager.canGoPrevious(),
       canGoNext: this.levelManager.canGoNext(),
-      levelComplete: this.gameState.levelComplete,
+      levelComplete: canAdvance,
     });
   }
 
@@ -219,7 +261,7 @@ export class GameEngine {
   }
 
   nextLevel() {
-    if (!this.gameState.levelComplete || !this.levelManager.canGoNext()) return;
+    if (!this.canAdvanceFromCurrentLevel() || !this.levelManager.canGoNext()) return;
     const level = this.levelManager.nextLevel();
     this.applyLevel(level);
   }
@@ -228,6 +270,20 @@ export class GameEngine {
     if (!this.levelManager.canGoPrevious()) return;
     const level = this.levelManager.previousLevel();
     this.applyLevel(level);
+  }
+
+  resetAll() {
+    this.storage.clear();
+    this.gameState.currentLevelIndex = 0;
+    this.gameState.currentLevel = 1;
+    this.gameState.levelComplete = false;
+    this.gameState.highestUnlockedLevel = 1;
+    this.gameState.completedLevels = [];
+    this.gameState.purchasedBlocks = [];
+    this.gameState.logs = [];
+    this.ui.logs = this.gameState.logs;
+    this.applyLevel(this.levelManager.goToLevel(0), { save: false });
+    this.ui.addLog('All progress reset.');
   }
 
   loadProgramCommands() {
@@ -267,11 +323,14 @@ export class GameEngine {
         type: 'wait',
         endsAt: result.endsAt,
       };
+    } else if (result.status === 'enqueue') {
+      this.queue.insertFront(result.commands);
     } else if (result.status === 'error') {
       this.setState(GAME_STATE.ERROR);
     }
 
     this.checkLevelComplete();
+    this.saveProgress();
 
     if (
       !this.gameState.levelComplete &&
@@ -310,6 +369,7 @@ export class GameEngine {
       this.ui.addLog('Waited 1 second');
       this.activeCommand = null;
       this.lastTick = time;
+      this.saveProgress();
 
       if (!this.gameState.levelComplete && this.queue.isEmpty()) {
         this.finishProgram();
@@ -330,11 +390,19 @@ export class GameEngine {
 
     if (this.levelManager.isComplete({ world: this.world, robot: this.robot })) {
       this.gameState.levelComplete = true;
+      if (!this.gameState.completedLevels.includes(this.gameState.currentLevel)) {
+        this.gameState.completedLevels.push(this.gameState.currentLevel);
+      }
+      this.gameState.highestUnlockedLevel = Math.max(
+        this.gameState.highestUnlockedLevel,
+        this.gameState.currentLevel + 1,
+      );
       this.queue.clear();
       this.activeCommand = null;
       this.setState(GAME_STATE.SUCCESS);
       this.ui.addLog('Level Complete!');
       this.renderPanels();
+      this.saveProgress();
     }
   }
 
@@ -343,9 +411,20 @@ export class GameEngine {
     this.ui.updateStatus(state);
   }
 
+  canAdvanceFromCurrentLevel() {
+    return (
+      this.gameState.levelComplete ||
+      this.gameState.completedLevels.includes(this.gameState.currentLevel)
+    );
+  }
+
   render() {
     this.renderer.clear();
     this.renderer.renderWorld(this.world, this.levelManager.currentLevel);
     this.renderer.renderRobot(this.robot);
+  }
+
+  saveProgress() {
+    this.storage.save(this.gameState);
   }
 }

@@ -63,6 +63,15 @@ export const BLOCK_DEFINITIONS = [
     commandType: 'harvest',
   },
   {
+    id: 'water',
+    name: 'Water',
+    category: 'Farming',
+    cost: 0,
+    description: 'Water the current tile. Crop growth remains time-based.',
+    codePreview: 'water()',
+    commandType: 'water',
+  },
+  {
     id: 'repeat_2',
     name: 'Repeat 2',
     category: 'Control',
@@ -95,11 +104,42 @@ export const BLOCK_DEFINITIONS = [
     repeatCount: 5,
     hasChildren: true,
   },
+  {
+    id: 'if_on_soil',
+    name: 'If On Soil',
+    category: 'Control',
+    cost: 25,
+    description: 'Run child blocks only when the robot is on soil.',
+    codePreview: 'if on_soil():',
+    commandType: 'if',
+    hasChildren: true,
+    conditionType: 'on_soil',
+  },
+  {
+    id: 'if_crop_ready',
+    name: 'If Crop Ready',
+    category: 'Control',
+    cost: 25,
+    description: 'Run child blocks only when the crop here is grown.',
+    codePreview: 'if crop_ready():',
+    commandType: 'if',
+    hasChildren: true,
+    conditionType: 'crop_ready',
+  },
+  {
+    id: 'if_front_clear',
+    name: 'If Front Clear',
+    category: 'Control',
+    cost: 20,
+    description: 'Run child blocks only when the front tile is clear.',
+    codePreview: 'if front_clear():',
+    commandType: 'if',
+    hasChildren: true,
+    conditionType: 'front_clear',
+  },
 ];
 
-export const FREE_BLOCK_IDS = BLOCK_DEFINITIONS
-  .filter((block) => block.cost === 0)
-  .map((block) => block.id);
+export const FREE_BLOCK_IDS = ['move', 'turn_left', 'turn_right'];
 
 export function getBlockDefinition(blockId) {
   return BLOCK_DEFINITIONS.find((block) => block.id === blockId);

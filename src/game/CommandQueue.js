@@ -7,6 +7,10 @@ export class CommandQueue {
     this.commands.push(cmd);
   }
 
+  insertFront(commands) {
+    this.commands.unshift(...commands);
+  }
+
   pop() {
     return this.commands.shift();
   }

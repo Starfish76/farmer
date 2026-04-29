@@ -71,36 +71,84 @@ export class BlockProgram {
   }
 
   toCommands(maxCommands = MAX_COMMANDS) {
-    const commands = [];
-    const result = this.flattenBlocks(this.gameState.programBlocks, commands, maxCommands);
-
-    if (!result.ok) {
-      return result;
+    const validation = this.validateChildren(this.gameState.programBlocks);
+    if (!validation.ok) {
+      return validation;
     }
 
-    return { ok: true, commands };
+    const estimatedCount = this.estimateCommandCount(this.gameState.programBlocks);
+
+    if (estimatedCount > maxCommands) {
+      return { ok: false, message: 'Too many commands. Try a shorter program.' };
+    }
+
+    return {
+      ok: true,
+      commands: this.buildCommands(this.gameState.programBlocks),
+      estimatedCount,
+    };
   }
 
-  flattenBlocks(programBlocks, commands, maxCommands) {
+  validateChildren(programBlocks) {
     for (const programBlock of programBlocks) {
       const definition = getBlockDefinition(programBlock.blockId);
       if (!definition) continue;
 
-      if (definition.hasChildren) {
-        for (let repeatIndex = 0; repeatIndex < definition.repeatCount; repeatIndex += 1) {
-          const result = this.flattenBlocks(programBlock.children, commands, maxCommands);
-          if (!result.ok) return result;
-        }
+      if (definition.hasChildren && (programBlock.children ?? []).length === 0) {
+        return { ok: false, message: `${definition.name} has no child blocks.` };
+      }
+
+      const childValidation = this.validateChildren(programBlock.children ?? []);
+      if (!childValidation.ok) return childValidation;
+    }
+
+    return { ok: true };
+  }
+
+  buildCommands(programBlocks) {
+    const commands = [];
+
+    for (const programBlock of programBlocks) {
+      const definition = getBlockDefinition(programBlock.blockId);
+      if (!definition) continue;
+
+      if (definition.repeatCount) {
+        commands.push({
+          type: 'repeat',
+          count: definition.repeatCount,
+          children: this.buildCommands(programBlock.children ?? []),
+        });
+      } else if (definition.conditionType) {
+        commands.push({
+          type: 'if',
+          conditionType: definition.conditionType,
+          children: this.buildCommands(programBlock.children ?? []),
+        });
       } else {
         commands.push({ type: definition.commandType });
       }
+    }
 
-      if (commands.length > maxCommands) {
-        return { ok: false, message: 'Too many commands. Try a shorter program.' };
+    return commands;
+  }
+
+  estimateCommandCount(programBlocks) {
+    let count = 0;
+
+    for (const programBlock of programBlocks) {
+      const definition = getBlockDefinition(programBlock.blockId);
+      if (!definition) continue;
+
+      if (definition.repeatCount) {
+        count += definition.repeatCount * this.estimateCommandCount(programBlock.children ?? []);
+      } else if (definition.conditionType) {
+        count += this.estimateCommandCount(programBlock.children ?? []);
+      } else {
+        count += 1;
       }
     }
 
-    return { ok: true, commands };
+    return count;
   }
 
   getBlocks() {

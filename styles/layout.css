@@ -2,19 +2,21 @@
   display: flex;
   height: 100vh;
   width: 100vw;
+  min-width: 0;
 }
 
 .game-area {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
   position: relative;
 }
 
 #canvas-container {
   flex-grow: 1;
   width: 100%;
-  height: calc(100% - 70px); /* 하단 컨트롤바 높이 제외 */
+  min-height: 0;
   background: radial-gradient(circle, #1e2233 0%, #0c0d12 100%);
 }
 
@@ -25,7 +27,7 @@ canvas {
 }
 
 .bottom-controls {
-  height: 70px;
+  min-height: 70px;
   background-color: rgba(10, 11, 15, 0.9);
   border-top: 1px solid #2a2d3e;
   display: flex;
@@ -33,4 +35,42 @@ canvas {
   align-items: center;
   gap: 15px;
   padding: 0 20px;
+}
+
+@media (max-width: 1100px) {
+  .app-container {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .game-area {
+    min-height: 640px;
+  }
+
+  #canvas-container {
+    height: 570px;
+    flex-grow: 0;
+  }
+
+  .bottom-controls {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 14px;
+  }
+}
+
+@media (max-width: 640px) {
+  .game-area {
+    min-height: 520px;
+  }
+
+  #canvas-container {
+    height: 440px;
+  }
+
+  .bottom-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

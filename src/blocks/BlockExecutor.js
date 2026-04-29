@@ -29,6 +29,13 @@ export class BlockExecutor {
         return this.plantCrop('carrot', time);
       case 'harvest':
         return this.harvest(time);
+      case 'water':
+        this.ui.addLog('Watered tile');
+        return { status: 'done' };
+      case 'repeat':
+        return this.repeat(command);
+      case 'if':
+        return this.condition(command, time);
       default:
         this.ui.addLog(`Unknown command: ${command.type}`);
         return { status: 'error' };
@@ -90,4 +97,56 @@ export class BlockExecutor {
 
     return { status: 'done' };
   }
+
+  repeat(command) {
+    const expanded = [];
+
+    for (let index = 0; index < command.count; index += 1) {
+      expanded.push(...cloneCommands(command.children ?? []));
+    }
+
+    return { status: 'enqueue', commands: expanded };
+  }
+
+  condition(command, time) {
+    const passed = this.evaluateCondition(command.conditionType, time);
+
+    if (!passed) {
+      this.ui.addLog(`Condition ${command.conditionType}: false`);
+      return { status: 'done' };
+    }
+
+    this.ui.addLog(`Condition ${command.conditionType}: true`);
+    return {
+      status: 'enqueue',
+      commands: cloneCommands(command.children ?? []),
+    };
+  }
+
+  evaluateCondition(conditionType, time) {
+    if (conditionType === 'on_soil') {
+      return this.world.getTile(this.robot.gridX, this.robot.gridY)?.type === 'soil';
+    }
+
+    if (conditionType === 'crop_ready') {
+      const crop = this.world.getCropAt(this.robot.gridX, this.robot.gridY);
+      if (!crop) return false;
+      updateGrowthStage(crop, time);
+      return crop.growthStage === 'grown';
+    }
+
+    if (conditionType === 'front_clear') {
+      const front = this.robot.getFrontPos();
+      return this.world.isWalkable(front.x, front.y);
+    }
+
+    return false;
+  }
+}
+
+function cloneCommands(commands) {
+  return commands.map((command) => ({
+    ...command,
+    children: command.children ? cloneCommands(command.children) : undefined,
+  }));
 }

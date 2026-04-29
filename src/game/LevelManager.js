@@ -49,6 +49,25 @@ export class LevelManager {
       return world.countCropsByType('carrot') >= level.target.count;
     }
 
+    if (level.winConditionType === 'smart_carrot_row') {
+      return level.target.cells.every((cell) => {
+        const tile = world.getTile(cell.x, cell.y);
+        if (!tile || tile.type !== cell.tileType) return false;
+
+        if (cell.cropType === null) {
+          return tile.crop === null;
+        }
+
+        return tile.crop?.type === cell.cropType;
+      });
+    }
+
+    if (level.winConditionType === 'harvest_all_target_crops') {
+      return level.target.cropPositions.every((position) => (
+        world.getCropAt(position.x, position.y) === null
+      ));
+    }
+
     if (level.winConditionType === 'harvest_wheat') {
       return this.gameState.harvestedWheatCount >= level.target.count;
     }

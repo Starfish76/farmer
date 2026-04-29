@@ -54,6 +54,10 @@ export class ProgramPanel {
       item.className = programBlock.definition.hasChildren
         ? 'program-block repeat-program-block'
         : 'program-block';
+      item.dataset.category = programBlock.definition.category;
+      if (programBlock.id === this.program.gameState.selectedContainerId) {
+        item.classList.add('selected-container');
+      }
       item.style.marginLeft = `${depth * 18}px`;
 
       if (programBlock.definition.hasChildren) {

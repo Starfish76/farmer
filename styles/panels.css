@@ -11,6 +11,15 @@
   box-shadow: -5px 0 15px rgba(0, 0, 0, 0.5);
 }
 
+@media (max-width: 1100px) {
+  .side-panel {
+    width: 100%;
+    min-width: 0;
+    border-left: none;
+    border-top: 1px solid #2a2d3e;
+  }
+}
+
 .panel-header {
   text-align: center;
   padding-bottom: 10px;
@@ -64,6 +73,10 @@
 
 .mission-panel h3 {
   color: #facc15;
+}
+
+.mission-panel h3[data-complete="true"] {
+  color: #34d399;
 }
 
 .mission-detail {
@@ -163,6 +176,10 @@
   opacity: 0.55;
 }
 
+.danger-mini {
+  background-color: #7f1d1d;
+}
+
 .owned-block {
   width: 100%;
   padding: 9px 10px;
@@ -175,6 +192,7 @@
 .mini-btn:hover,
 .icon-btn:hover {
   filter: brightness(1.16);
+  transform: translateY(-1px);
 }
 
 .section-title-row {
@@ -217,8 +235,43 @@
   filter: brightness(1.12);
 }
 
+.program-block.selected-container {
+  border-color: #facc15;
+  box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.22);
+}
+
+.block-card[data-category="Movement"],
+.owned-block[data-category="Movement"],
+.program-block[data-category="Movement"] {
+  border-left: 4px solid #3b82f6;
+}
+
+.block-card[data-category="Farming"],
+.owned-block[data-category="Farming"],
+.program-block[data-category="Farming"] {
+  border-left: 4px solid #22c55e;
+}
+
+.block-card[data-category="Control"],
+.owned-block[data-category="Control"],
+.program-block[data-category="Control"] {
+  border-left: 4px solid #a855f7;
+}
+
+.block-card[data-category="Sensor"],
+.owned-block[data-category="Sensor"],
+.program-block[data-category="Sensor"] {
+  border-left: 4px solid #facc15;
+}
+
+.block-card[data-category="Utility"],
+.owned-block[data-category="Utility"],
+.program-block[data-category="Utility"] {
+  border-left: 4px solid #94a3b8;
+}
+
 .repeat-empty {
-  border-left: 2px dashed rgba(250, 204, 21, 0.45);
+  border-left: 3px dashed rgba(250, 204, 21, 0.45);
   color: #7b84a6;
   font-size: 0.78rem;
   padding: 5px 0 5px 10px;
@@ -243,7 +296,7 @@
   background-color: #0b0c10;
   padding: 10px;
   border-radius: 4px;
-  font-family: monospace;
+  font-family: "Cascadia Code", Consolas, "Courier New", monospace;
   font-size: 0.85rem;
   color: #56b6c2;
   overflow-x: auto;
