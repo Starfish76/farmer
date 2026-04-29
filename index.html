@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Farm Lab</title>
+  <link rel="stylesheet" href="styles/global.css">
+  <link rel="stylesheet" href="styles/layout.css">
+  <link rel="stylesheet" href="styles/panels.css">
+</head>
+<body>
+  <div class="app-container">
+    <main class="game-area">
+      <div id="canvas-container">
+        <canvas id="game-canvas"></canvas>
+      </div>
+      <div class="bottom-controls">
+        <button class="btn btn-primary" id="btn-run" type="button">Run</button>
+        <button class="btn btn-secondary" id="btn-step" type="button">Step</button>
+        <button class="btn btn-danger" id="btn-stop" type="button">Stop</button>
+        <button class="btn btn-warning" id="btn-reset" type="button">Reset</button>
+      </div>
+    </main>
+
+    <aside class="side-panel">
+      <header class="panel-header">
+        <h1>Code Farm Lab</h1>
+        <p class="subtitle">농부는 대체되었다</p>
+      </header>
+
+      <div class="panel-section">
+        <div class="mission-bar">Mission: <span class="highlight">Robot movement test</span></div>
+        <div class="status-bar">Status: <span class="status-value" data-state="stopped">stopped</span></div>
+        <div class="stats-bar">Coins: <span class="highlight">100</span> | Score: <span class="highlight">0</span></div>
+      </div>
+
+      <div class="panel-section block-shop">
+        <h3>Block Shop</h3>
+        <div class="placeholder-box">Block shop area - coming later</div>
+      </div>
+
+      <div class="panel-section program-area">
+        <h3>Program</h3>
+        <div class="placeholder-box">Program assembly area - coming later</div>
+      </div>
+
+      <div class="panel-section code-preview">
+        <h3>Code Preview</h3>
+        <pre><code># Python style code
+def main():
+    pass</code></pre>
+      </div>
+
+      <div class="panel-section log-area">
+        <h3>Log</h3>
+        <div class="log-content">System initialized...</div>
+      </div>
+    </aside>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

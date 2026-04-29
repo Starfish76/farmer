@@ -1,0 +1,36 @@
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+.game-area {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+#canvas-container {
+  flex-grow: 1;
+  width: 100%;
+  height: calc(100% - 70px); /* 하단 컨트롤바 높이 제외 */
+  background: radial-gradient(circle, #1e2233 0%, #0c0d12 100%);
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.bottom-controls {
+  height: 70px;
+  background-color: rgba(10, 11, 15, 0.9);
+  border-top: 1px solid #2a2d3e;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  padding: 0 20px;
+}
