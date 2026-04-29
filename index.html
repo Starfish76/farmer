@@ -47,17 +47,28 @@
         </div>
       </div>
 
-      <div class="panel-section block-shop">
+      <nav class="side-tabs" aria-label="Side panel sections">
+        <button class="tab-btn active" data-tab-button="blocks" type="button">Blocks</button>
+        <button class="tab-btn" data-tab-button="program" type="button">Program</button>
+        <button class="tab-btn" data-tab-button="code" type="button">Code</button>
+        <button class="tab-btn" data-tab-button="log" type="button">Log</button>
+      </nav>
+
+      <div class="panel-section block-shop tab-panel active" data-tab-panel="blocks">
         <h3>Block Shop</h3>
         <div class="block-list" data-shop-list></div>
         <h3 class="subheading">Owned Blocks</h3>
         <div class="owned-list" data-owned-list></div>
       </div>
 
-      <div class="panel-section program-area">
+      <div class="panel-section program-area tab-panel" data-tab-panel="program">
         <div class="section-title-row">
           <h3>Program</h3>
           <button class="mini-btn" data-clear-program type="button">Clear Program</button>
+        </div>
+        <div class="quick-add">
+          <div class="quick-add-title">Add Blocks</div>
+          <div class="owned-list compact-owned-list" data-program-owned-list></div>
         </div>
         <div class="editing-bar">
           Editing: <span data-editing-container>Main Program</span>
@@ -66,12 +77,12 @@
         <div class="program-list" data-program-list></div>
       </div>
 
-      <div class="panel-section code-preview">
+      <div class="panel-section code-preview tab-panel" data-tab-panel="code">
         <h3>Code Preview</h3>
         <pre><code data-code-preview># Add blocks to build a program</code></pre>
       </div>
 
-      <div class="panel-section log-area">
+      <div class="panel-section log-area tab-panel" data-tab-panel="log">
         <h3>Log</h3>
         <div class="log-content">System initialized...</div>
       </div>

@@ -97,6 +97,46 @@
   margin-top: 10px;
 }
 
+.side-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid #2f3650;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.26);
+}
+
+.tab-btn {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #9ca8c9;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 8px 4px;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+.tab-btn.active {
+  border-color: rgba(0, 210, 255, 0.42);
+  background: rgba(0, 120, 215, 0.28);
+  color: #ffffff;
+  box-shadow: 0 0 0 1px rgba(0, 210, 255, 0.12);
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
 .placeholder-box {
   background-color: rgba(0, 0, 0, 0.3);
   border: 1px dashed #4b5270;
@@ -210,7 +250,7 @@
 .editing-bar {
   display: grid;
   gap: 7px;
-  margin-bottom: 8px;
+  margin: 8px 0;
   color: #aab2d0;
   font-size: 0.82rem;
 }
@@ -218,6 +258,36 @@
 .editing-bar span {
   color: #facc15;
   font-weight: bold;
+}
+
+.quick-add {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 8px;
+  padding: 9px;
+  border: 1px solid rgba(75, 82, 112, 0.72);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.20);
+}
+
+.quick-add-title {
+  color: #aab2d0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.compact-owned-list {
+  display: flex;
+  flex-flow: row wrap;
+  gap: 6px;
+}
+
+.compact-owned-block {
+  width: auto;
+  min-height: 30px;
+  padding: 7px 9px;
+  font-size: 0.74rem;
 }
 
 .program-block span {

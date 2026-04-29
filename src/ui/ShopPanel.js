@@ -5,11 +5,13 @@ export class ShopPanel {
     this.onAddBlock = onAddBlock;
     this.shopList = document.querySelector('[data-shop-list]');
     this.ownedList = document.querySelector('[data-owned-list]');
+    this.programOwnedList = document.querySelector('[data-program-owned-list]');
   }
 
   render() {
     this.renderShopList();
-    this.renderOwnedList();
+    this.renderOwnedList(this.ownedList);
+    this.renderOwnedList(this.programOwnedList, { compact: true });
   }
 
   renderShopList() {
@@ -42,19 +44,19 @@ export class ShopPanel {
     }
   }
 
-  renderOwnedList() {
-    if (!this.ownedList) return;
-    this.ownedList.textContent = '';
+  renderOwnedList(container, { compact = false } = {}) {
+    if (!container) return;
+    container.textContent = '';
 
     for (const block of this.shop.getOwnedBlocks()) {
       const button = document.createElement('button');
-      button.className = 'owned-block';
+      button.className = compact ? 'owned-block compact-owned-block' : 'owned-block';
       button.dataset.category = block.category;
       button.type = 'button';
       button.textContent = block.name;
       button.title = `Add ${block.name} to Program`;
       button.addEventListener('click', () => this.onAddBlock(block.id));
-      this.ownedList.append(button);
+      container.append(button);
     }
   }
 }

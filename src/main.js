@@ -1,7 +1,8 @@
 import { GameEngine } from './game/GameEngine.js';
+import { PanelTabs } from './ui/PanelTabs.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+  new PanelTabs('blocks');
   const engine = new GameEngine('game-canvas');
-  // 메인 루프 시작
-  requestAnimationFrame((t) => engine.update(t));
+  requestAnimationFrame((time) => engine.update(time));
 });
