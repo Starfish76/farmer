@@ -1,4 +1,4 @@
-import { DIRECTIONS, GRID_SIZE, TILE_COLORS, TILE_H, TILE_W } from '../constants.js';
+import { DIRECTIONS, TILE_COLORS, TILE_H, TILE_W } from '../constants.js';
 import { CROPS } from './Crop.js';
 import { drawPolygon } from '../utils/helpers.js';
 import { gridToScreen } from '../utils/isometric.js';
@@ -17,7 +17,7 @@ export class Renderer {
     this.canvas.width = parent.clientWidth;
     this.canvas.height = parent.clientHeight;
     this.offsetX = this.canvas.width / 2;
-    this.offsetY = this.canvas.height / 2 - (GRID_SIZE * TILE_H) / 2 + 50;
+    this.offsetY = this.canvas.height / 2 - TILE_H + 40;
   }
 
   clear() {
@@ -25,8 +25,10 @@ export class Renderer {
   }
 
   renderWorld(world, level) {
-    for (let y = 0; y < GRID_SIZE; y += 1) {
-      for (let x = 0; x < GRID_SIZE; x += 1) {
+    this.setWorldOffsets(world);
+
+    for (let y = 0; y < world.height; y += 1) {
+      for (let x = 0; x < world.width; x += 1) {
         const tile = world.grid[y][x];
         this.drawTile(tile);
       }
@@ -36,14 +38,25 @@ export class Renderer {
       this.drawTarget(level.target);
     }
 
-    for (let y = 0; y < GRID_SIZE; y += 1) {
-      for (let x = 0; x < GRID_SIZE; x += 1) {
+    for (let y = 0; y < world.height; y += 1) {
+      for (let x = 0; x < world.width; x += 1) {
         const tile = world.grid[y][x];
         if (tile.crop) {
           const { x: sx, y: sy } = gridToScreen(tile.x, tile.y, this.offsetX, this.offsetY);
           this.drawCrop(tile.crop, sx, sy);
         }
       }
+    }
+  }
+
+  setWorldOffsets(world) {
+    const boardWidth = (world.width + world.height) * TILE_W / 2;
+    const boardHeight = (world.width + world.height) * TILE_H / 2;
+    this.offsetX = this.canvas.width / 2 - ((world.width - world.height) * TILE_W / 4);
+    this.offsetY = Math.max(70, this.canvas.height / 2 - boardHeight / 2 + 20);
+
+    if (boardWidth < 360) {
+      this.offsetY += 34;
     }
   }
 

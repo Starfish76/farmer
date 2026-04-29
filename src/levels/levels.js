@@ -1,67 +1,26 @@
 const LEVEL_1_GRID = [
-  ['grass', 'grass', 'grass', 'rock', 'water', 'water', 'grass', 'grass'],
-  ['grass', 'soil', 'soil', 'grass', 'rock', 'water', 'grass', 'grass'],
-  ['grass', 'soil', 'soil', 'grass', 'grass', 'grass', 'grass', 'rock'],
-  ['grass', 'grass', 'grass', 'grass', 'soil', 'soil', 'grass', 'grass'],
-  ['water', 'water', 'rock', 'grass', 'soil', 'soil', 'grass', 'grass'],
-  ['water', 'rock', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass'],
-  ['grass', 'grass', 'grass', 'soil', 'soil', 'rock', 'water', 'water'],
-  ['grass', 'grass', 'grass', 'soil', 'soil', 'grass', 'water', 'rock'],
+  ['soil', 'soil', 'soil'],
+  ['soil', 'soil', 'soil'],
 ];
 
 const LEVEL_2_GRID = [
-  ['soil', 'soil', 'soil', 'grass', 'water', 'grass', 'grass', 'grass'],
-  ['grass', 'grass', 'soil', 'grass', 'rock', 'grass', 'soil', 'grass'],
-  ['grass', 'soil', 'soil', 'grass', 'grass', 'grass', 'soil', 'grass'],
-  ['grass', 'grass', 'grass', 'rock', 'grass', 'soil', 'grass', 'grass'],
-  ['water', 'water', 'grass', 'grass', 'soil', 'soil', 'grass', 'grass'],
-  ['grass', 'rock', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass'],
-  ['grass', 'grass', 'grass', 'soil', 'soil', 'rock', 'water', 'water'],
-  ['grass', 'grass', 'grass', 'soil', 'soil', 'grass', 'water', 'rock'],
+  ['soil', 'soil', 'soil'],
 ];
 
 const LEVEL_3_GRID = [
-  ['soil', 'soil', 'grass', 'grass', 'water', 'water', 'grass', 'grass'],
-  ['soil', 'soil', 'grass', 'grass', 'rock', 'water', 'grass', 'grass'],
-  ['grass', 'soil', 'soil', 'grass', 'grass', 'grass', 'grass', 'rock'],
-  ['grass', 'grass', 'grass', 'grass', 'soil', 'soil', 'grass', 'grass'],
-  ['water', 'water', 'rock', 'grass', 'soil', 'soil', 'grass', 'grass'],
-  ['water', 'rock', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass'],
-  ['grass', 'grass', 'grass', 'soil', 'soil', 'rock', 'water', 'water'],
-  ['grass', 'grass', 'grass', 'soil', 'soil', 'grass', 'water', 'rock'],
+  ['soil', 'soil'],
 ];
 
 const LEVEL_4_GRID = [
-  ['soil', 'soil', 'soil', 'soil', 'soil', 'grass', 'grass', 'grass'],
-  ['grass', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass'],
-  ['grass', 'rock', 'grass', 'water', 'grass', 'grass', 'grass', 'grass'],
-  ['grass', 'grass', 'grass', 'water', 'grass', 'soil', 'soil', 'grass'],
-  ['water', 'water', 'grass', 'grass', 'grass', 'soil', 'soil', 'grass'],
-  ['grass', 'rock', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass'],
-  ['grass', 'grass', 'grass', 'soil', 'soil', 'rock', 'water', 'water'],
-  ['grass', 'grass', 'grass', 'soil', 'soil', 'grass', 'water', 'rock'],
+  ['soil', 'soil', 'soil', 'soil', 'soil'],
 ];
 
 const LEVEL_5_GRID = [
-  ['soil', 'grass', 'soil', 'grass', 'soil', 'grass', 'grass', 'grass'],
-  ['grass', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass'],
-  ['grass', 'rock', 'grass', 'water', 'grass', 'grass', 'grass', 'grass'],
-  ['grass', 'grass', 'grass', 'water', 'grass', 'soil', 'soil', 'grass'],
-  ['water', 'water', 'grass', 'grass', 'grass', 'soil', 'soil', 'grass'],
-  ['grass', 'rock', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass'],
-  ['grass', 'grass', 'grass', 'soil', 'soil', 'rock', 'water', 'water'],
-  ['grass', 'grass', 'grass', 'soil', 'soil', 'grass', 'water', 'rock'],
+  ['soil', 'soil', 'soil', 'soil', 'soil'],
 ];
 
 const LEVEL_6_GRID = [
-  ['soil', 'soil', 'soil', 'soil', 'soil', 'water', 'rock', 'grass'],
-  ['grass', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass'],
-  ['grass', 'rock', 'grass', 'water', 'grass', 'grass', 'grass', 'grass'],
-  ['grass', 'grass', 'grass', 'water', 'grass', 'soil', 'soil', 'grass'],
-  ['water', 'water', 'grass', 'grass', 'grass', 'soil', 'soil', 'grass'],
-  ['grass', 'rock', 'grass', 'grass', 'grass', 'grass', 'grass', 'grass'],
-  ['grass', 'grass', 'grass', 'soil', 'soil', 'rock', 'water', 'water'],
-  ['grass', 'grass', 'grass', 'soil', 'soil', 'grass', 'water', 'rock'],
+  ['soil', 'soil', 'soil', 'soil', 'soil'],
 ];
 
 export const LEVELS = [

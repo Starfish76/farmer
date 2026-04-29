@@ -1,16 +1,9 @@
-import { GRID_SIZE } from '../constants.js';
 import { createCrop, updateGrowthStage } from './Crop.js';
 import { Tile } from './Tiles.js';
 
 const DEFAULT_GRID = [
-  ['soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil'],
-  ['soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil'],
-  ['soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil'],
-  ['soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil'],
-  ['soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil'],
-  ['soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil'],
-  ['soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil'],
-  ['soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil', 'soil'],
+  ['soil', 'soil', 'soil'],
+  ['soil', 'soil', 'soil'],
 ];
 
 export class World {
@@ -21,11 +14,13 @@ export class World {
 
   loadGrid(grid) {
     this.grid = [];
+    this.height = grid.length;
+    this.width = grid[0]?.length ?? 0;
 
-    for (let y = 0; y < GRID_SIZE; y += 1) {
+    for (let y = 0; y < this.height; y += 1) {
       const row = [];
 
-      for (let x = 0; x < GRID_SIZE; x += 1) {
+      for (let x = 0; x < this.width; x += 1) {
         row.push(new Tile(x, y, 'soil'));
       }
 
@@ -97,6 +92,6 @@ export class World {
   }
 
   isInside(x, y) {
-    return x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE;
+    return x >= 0 && x < this.width && y >= 0 && y < this.height;
   }
 }
