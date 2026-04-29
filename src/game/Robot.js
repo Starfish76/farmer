@@ -2,17 +2,24 @@ import { DIRECTIONS } from '../constants.js';
 
 const MOVE_DURATION = 240;
 
+const DIRECTION_BY_NAME = {
+  north: DIRECTIONS.NORTH,
+  east: DIRECTIONS.EAST,
+  south: DIRECTIONS.SOUTH,
+  west: DIRECTIONS.WEST,
+};
+
 export class Robot {
   constructor() {
     this.reset();
   }
 
-  reset() {
-    this.gridX = 0;
-    this.gridY = 0;
-    this.dir = DIRECTIONS.EAST;
-    this.animX = 0;
-    this.animY = 0;
+  reset({ x = 0, y = 0, direction = 'east' } = {}) {
+    this.gridX = x;
+    this.gridY = y;
+    this.dir = typeof direction === 'string' ? DIRECTION_BY_NAME[direction] : direction;
+    this.animX = x;
+    this.animY = y;
     this.moveAnimation = null;
   }
 

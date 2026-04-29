@@ -1,5 +1,7 @@
 import { getBlockDefinition } from './BlockDefinitions.js';
 
+const MAX_COMMANDS = 200;
+
 export class BlockProgram {
   constructor(gameState) {
     this.gameState = gameState;
@@ -9,60 +11,151 @@ export class BlockProgram {
     const block = getBlockDefinition(blockId);
     if (!block) return false;
 
-    this.gameState.programBlocks.push({
-      id: createProgramBlockId(),
-      blockId,
-    });
-
+    const container = this.getSelectedContainer();
+    container.push(createProgramBlock(blockId));
     return true;
   }
 
-  moveUp(programBlockId) {
-    const index = this.findIndex(programBlockId);
-    if (index <= 0) return;
+  selectContainer(programBlockId) {
+    const programBlock = this.findBlock(programBlockId);
+    if (!programBlock) return false;
 
-    const [block] = this.gameState.programBlocks.splice(index, 1);
-    this.gameState.programBlocks.splice(index - 1, 0, block);
+    const definition = getBlockDefinition(programBlock.blockId);
+    if (!definition?.hasChildren) return false;
+
+    this.gameState.selectedContainerId = programBlockId;
+    return true;
+  }
+
+  selectMainProgram() {
+    this.gameState.selectedContainerId = null;
+  }
+
+  getSelectedContainerLabel() {
+    const selected = this.findBlock(this.gameState.selectedContainerId);
+    if (!selected) return 'Main Program';
+
+    const definition = getBlockDefinition(selected.blockId);
+    return definition?.name ?? 'Main Program';
+  }
+
+  moveUp(programBlockId) {
+    const location = this.findLocation(programBlockId);
+    if (!location || location.index <= 0) return;
+
+    const [block] = location.container.splice(location.index, 1);
+    location.container.splice(location.index - 1, 0, block);
   }
 
   moveDown(programBlockId) {
-    const index = this.findIndex(programBlockId);
-    if (index < 0 || index >= this.gameState.programBlocks.length - 1) return;
+    const location = this.findLocation(programBlockId);
+    if (!location || location.index >= location.container.length - 1) return;
 
-    const [block] = this.gameState.programBlocks.splice(index, 1);
-    this.gameState.programBlocks.splice(index + 1, 0, block);
+    const [block] = location.container.splice(location.index, 1);
+    location.container.splice(location.index + 1, 0, block);
   }
 
   remove(programBlockId) {
-    const index = this.findIndex(programBlockId);
-    if (index < 0) return;
+    const location = this.findLocation(programBlockId);
+    if (!location) return;
 
-    this.gameState.programBlocks.splice(index, 1);
+    location.container.splice(location.index, 1);
+    if (this.gameState.selectedContainerId === programBlockId) {
+      this.selectMainProgram();
+    }
   }
 
   clear() {
     this.gameState.programBlocks.length = 0;
+    this.selectMainProgram();
   }
 
-  toCommands() {
-    return this.gameState.programBlocks
-      .map((programBlock) => getBlockDefinition(programBlock.blockId))
-      .filter(Boolean)
-      .map((block) => ({ type: block.commandType }));
+  toCommands(maxCommands = MAX_COMMANDS) {
+    const commands = [];
+    const result = this.flattenBlocks(this.gameState.programBlocks, commands, maxCommands);
+
+    if (!result.ok) {
+      return result;
+    }
+
+    return { ok: true, commands };
+  }
+
+  flattenBlocks(programBlocks, commands, maxCommands) {
+    for (const programBlock of programBlocks) {
+      const definition = getBlockDefinition(programBlock.blockId);
+      if (!definition) continue;
+
+      if (definition.hasChildren) {
+        for (let repeatIndex = 0; repeatIndex < definition.repeatCount; repeatIndex += 1) {
+          const result = this.flattenBlocks(programBlock.children, commands, maxCommands);
+          if (!result.ok) return result;
+        }
+      } else {
+        commands.push({ type: definition.commandType });
+      }
+
+      if (commands.length > maxCommands) {
+        return { ok: false, message: 'Too many commands. Try a shorter program.' };
+      }
+    }
+
+    return { ok: true, commands };
   }
 
   getBlocks() {
-    return this.gameState.programBlocks
+    return this.decorateBlocks(this.gameState.programBlocks);
+  }
+
+  decorateBlocks(programBlocks) {
+    return programBlocks
       .map((programBlock) => ({
         ...programBlock,
         definition: getBlockDefinition(programBlock.blockId),
+        children: this.decorateBlocks(programBlock.children ?? []),
       }))
       .filter((programBlock) => programBlock.definition);
   }
 
-  findIndex(programBlockId) {
-    return this.gameState.programBlocks.findIndex((block) => block.id === programBlockId);
+  getSelectedContainer() {
+    const selected = this.findBlock(this.gameState.selectedContainerId);
+    return selected?.children ?? this.gameState.programBlocks;
   }
+
+  findBlock(programBlockId, blocks = this.gameState.programBlocks) {
+    if (!programBlockId) return null;
+
+    for (const block of blocks) {
+      if (block.id === programBlockId) return block;
+
+      const found = this.findBlock(programBlockId, block.children ?? []);
+      if (found) return found;
+    }
+
+    return null;
+  }
+
+  findLocation(programBlockId, container = this.gameState.programBlocks) {
+    for (let index = 0; index < container.length; index += 1) {
+      const block = container[index];
+      if (block.id === programBlockId) {
+        return { container, index, block };
+      }
+
+      const found = this.findLocation(programBlockId, block.children ?? []);
+      if (found) return found;
+    }
+
+    return null;
+  }
+}
+
+function createProgramBlock(blockId) {
+  return {
+    id: createProgramBlockId(),
+    blockId,
+    children: [],
+  };
 }
 
 function createProgramBlockId() {
@@ -72,4 +165,3 @@ function createProgramBlockId() {
 
   return `program-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
-

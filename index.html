@@ -28,12 +28,21 @@
         <p class="subtitle">Code-driven farm automation</p>
       </header>
 
-      <div class="panel-section">
-        <div class="mission-bar">Mission: <span class="highlight">Build a movement program</span></div>
+      <div class="panel-section mission-panel">
+        <h3 data-level-title>Level 1: First Steps</h3>
+        <div class="mission-bar">Mission: <span class="highlight" data-level-mission>Move the robot to the target tile.</span></div>
+        <div class="mission-detail">Python Concept: <span data-level-concept></span></div>
+        <div class="mission-detail">Hint: <span data-level-hint></span></div>
+        <div class="mission-detail">Required Blocks: <span data-level-required-blocks></span></div>
         <div class="status-bar">Status: <span class="status-value" data-state="stopped">stopped</span></div>
         <div class="stats-bar">
           Coins: <span class="highlight" data-coins>20</span>
           | Score: <span class="highlight" data-score>0</span>
+        </div>
+        <div class="level-controls">
+          <button class="mini-btn" data-prev-level type="button">Previous Level</button>
+          <button class="mini-btn" data-reset-level type="button">Reset Level</button>
+          <button class="mini-btn" data-next-level type="button">Next Level</button>
         </div>
       </div>
 
@@ -48,6 +57,10 @@
         <div class="section-title-row">
           <h3>Program</h3>
           <button class="mini-btn" data-clear-program type="button">Clear Program</button>
+        </div>
+        <div class="editing-bar">
+          Editing: <span data-editing-container>Main Program</span>
+          <button class="mini-btn" data-back-main-program type="button">Back to Main Program</button>
         </div>
         <div class="program-list" data-program-list></div>
       </div>

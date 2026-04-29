@@ -3,5 +3,6 @@ export class Tile {
     this.x = x;
     this.y = y;
     this.type = type; // 'grass', 'soil', 'water', 'rock'
+    this.crop = null;
   }
 }

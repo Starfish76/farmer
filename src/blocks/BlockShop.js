@@ -21,6 +21,10 @@ export class BlockShop {
       return { ok: true, message: `${block.name} already owned.` };
     }
 
+    if (!this.isUnlocked(blockId)) {
+      return { ok: false, message: `${block.name} is locked in this level.` };
+    }
+
     if (this.gameState.coins < block.cost) {
       return { ok: false, message: `Not enough coins for ${block.name}.` };
     }
@@ -35,13 +39,14 @@ export class BlockShop {
   }
 
   getShopBlocks() {
-    return this.availableBlocks;
+    return this.availableBlocks.filter((block) => this.isUnlocked(block.id));
   }
 
   getOwnedBlocks() {
     return this.gameState.purchasedBlocks
       .map((blockId) => getBlockDefinition(blockId))
-      .filter(Boolean);
+      .filter(Boolean)
+      .filter((block) => this.isUnlocked(block.id));
   }
 
   purchaseFreeBlock(blockId) {
@@ -49,5 +54,15 @@ export class BlockShop {
       this.gameState.purchasedBlocks.push(blockId);
     }
   }
-}
 
+  ensureFreeBlocksOwned() {
+    for (const blockId of FREE_BLOCK_IDS) {
+      this.purchaseFreeBlock(blockId);
+    }
+  }
+
+  isUnlocked(blockId) {
+    const unlockedBlocks = this.gameState.unlockedBlocks ?? [];
+    return FREE_BLOCK_IDS.includes(blockId) || unlockedBlocks.includes(blockId);
+  }
+}

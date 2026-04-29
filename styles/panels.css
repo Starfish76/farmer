@@ -58,6 +58,32 @@
   color: #ef4444;
 }
 
+.status-value[data-state="success"] {
+  color: #34d399;
+}
+
+.mission-panel h3 {
+  color: #facc15;
+}
+
+.mission-detail {
+  color: #aab2d0;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  margin-bottom: 6px;
+}
+
+.mission-detail span {
+  color: #e0e4f0;
+}
+
+.level-controls {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 7px;
+  margin-top: 10px;
+}
+
 .placeholder-box {
   background-color: rgba(0, 0, 0, 0.3);
   border: 1px dashed #4b5270;
@@ -163,10 +189,39 @@
   margin-bottom: 0;
 }
 
+.editing-bar {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 8px;
+  color: #aab2d0;
+  font-size: 0.82rem;
+}
+
+.editing-bar span {
+  color: #facc15;
+  font-weight: bold;
+}
+
 .program-block span {
   color: #f3f4f6;
   font-size: 0.86rem;
   font-weight: bold;
+}
+
+.repeat-program-block {
+  border-color: rgba(250, 204, 21, 0.5);
+  background-color: rgba(250, 204, 21, 0.10);
+}
+
+.repeat-program-block:hover {
+  filter: brightness(1.12);
+}
+
+.repeat-empty {
+  border-left: 2px dashed rgba(250, 204, 21, 0.45);
+  color: #7b84a6;
+  font-size: 0.78rem;
+  padding: 5px 0 5px 10px;
 }
 
 .program-actions {

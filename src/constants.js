@@ -20,5 +20,6 @@ export const GAME_STATE = {
   STOPPED: 'stopped',
   RUNNING: 'running',
   PAUSED: 'paused',
-  ERROR: 'error'
+  ERROR: 'error',
+  SUCCESS: 'success'
 };
