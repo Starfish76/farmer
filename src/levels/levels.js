@@ -19,10 +19,6 @@ const LEVEL_5_GRID = [
   ['soil', 'soil', 'soil', 'soil', 'soil'],
 ];
 
-const LEVEL_6_GRID = [
-  ['soil', 'soil', 'soil', 'soil', 'soil'],
-];
-
 export const LEVELS = [
   {
     id: 1,
@@ -87,45 +83,20 @@ export const LEVELS = [
     robotStart: { x: 0, y: 0 },
     robotDirection: 'east',
     target: { type: 'carrot', count: 5 },
-    unlockedBlocks: ['move', 'turn_left', 'turn_right', 'plant_carrot', 'repeat_3', 'repeat_5'],
+    unlockedBlocks: ['move', 'turn_left', 'turn_right', 'plant_carrot', 'repeat_5'],
     winConditionType: 'plant_carrot',
     hint: 'Use Repeat 5 with plant_carrot() and move().',
     requiredBlocks: ['for i in range(5):', 'plant("carrot")', 'move()'],
   },
   {
     id: 5,
-    title: 'Level 5: Smart Farming',
-    description: 'Plant carrot only on soil in a mixed row.',
-    mission: 'Plant carrot only on soil tiles in the mixed row.',
-    learningGoal: 'Use an if statement to run code only when a condition is true.',
-    pythonConcept: 'An if statement checks a condition before running its child code.',
-    initialCoins: 80,
-    grid: LEVEL_5_GRID,
-    robotStart: { x: 0, y: 0 },
-    robotDirection: 'east',
-    target: {
-      cells: [
-        { x: 0, y: 0, tileType: 'soil', cropType: 'carrot' },
-        { x: 1, y: 0, tileType: 'soil', cropType: 'carrot' },
-        { x: 2, y: 0, tileType: 'soil', cropType: 'carrot' },
-        { x: 3, y: 0, tileType: 'soil', cropType: 'carrot' },
-        { x: 4, y: 0, tileType: 'soil', cropType: 'carrot' },
-      ],
-    },
-    unlockedBlocks: ['move', 'turn_left', 'turn_right', 'plant_carrot', 'repeat_5', 'if_on_soil'],
-    winConditionType: 'smart_carrot_row',
-    hint: 'Put plant_carrot() inside if_on_soil, then move forward each turn.',
-    requiredBlocks: ['for i in range(5):', 'if on_soil():', 'plant("carrot")', 'move()'],
-  },
-  {
-    id: 6,
-    title: 'Level 6: Harvest Algorithm',
-    description: 'Harvest grown crops while checking conditions before acting.',
+    title: 'Level 5: Harvest Algorithm',
+    description: 'Harvest grown crops with a condition inside a loop.',
     mission: 'Harvest all grown carrot crops.',
     learningGoal: 'Combine conditions, loops, and algorithmic thinking.',
     pythonConcept: 'Conditions and loops work together to make an algorithm adapt to state.',
     initialCoins: 100,
-    grid: LEVEL_6_GRID,
+    grid: LEVEL_5_GRID,
     robotStart: { x: 0, y: 0 },
     robotDirection: 'east',
     target: {
@@ -144,9 +115,9 @@ export const LEVELS = [
       { x: 3, y: 0, type: 'carrot', stage: 'grown' },
       { x: 4, y: 0, type: 'carrot', stage: 'grown' },
     ],
-    unlockedBlocks: ['move', 'turn_left', 'turn_right', 'water', 'harvest', 'repeat_5', 'if_front_clear', 'if_crop_ready'],
+    unlockedBlocks: ['move', 'turn_left', 'turn_right', 'water', 'harvest', 'repeat_5', 'if_crop_ready'],
     winConditionType: 'harvest_all_target_crops',
-    hint: 'Use if_crop_ready to harvest only when a crop is ready. Use if_front_clear before moving.',
-    requiredBlocks: ['for i in range(5):', 'if crop_ready():', 'harvest()', 'if front_clear():', 'move()'],
+    hint: 'Use if_crop_ready to harvest only when a crop is ready, then move to the next tile.',
+    requiredBlocks: ['for i in range(5):', 'if crop_ready():', 'harvest()', 'move()'],
   },
 ];

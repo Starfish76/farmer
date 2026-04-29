@@ -337,12 +337,8 @@ export class GameEngine {
       'wait',
       'harvest',
       'water',
-      'repeat_2',
-      'repeat_3',
       'repeat_5',
-      'if_on_soil',
       'if_crop_ready',
-      'if_front_clear',
     ];
     this.economy.setCoins(options.coinsOverride ?? 30);
     this.blockShop.ensureFreeBlocksOwned();

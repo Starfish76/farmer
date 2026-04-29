@@ -124,20 +124,11 @@ export class BlockExecutor {
   }
 
   evaluateCondition(conditionType, time) {
-    if (conditionType === 'on_soil') {
-      return this.world.getTile(this.robot.gridX, this.robot.gridY)?.type === 'soil';
-    }
-
     if (conditionType === 'crop_ready') {
       const crop = this.world.getCropAt(this.robot.gridX, this.robot.gridY);
       if (!crop) return false;
       updateGrowthStage(crop, time);
       return crop.growthStage === 'grown';
-    }
-
-    if (conditionType === 'front_clear') {
-      const front = this.robot.getFrontPos();
-      return this.world.isWalkable(front.x, front.y);
     }
 
     return false;

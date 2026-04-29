@@ -44,7 +44,7 @@ No build step, npm install, backend, database, login, external image, or externa
 - Movement: `move()`, `turn_left()`, `turn_right()`
 - Farming: `plant("wheat")`, `plant("carrot")`, `water()`, `harvest()`
 - Utility: `wait(1)`
-- Control: `for i in range(n):`, `if on_soil():`, `if crop_ready():`, `if front_clear():`
+- Control: `for i in range(5):`, `if crop_ready():`
 
 Repeat and if blocks contain child blocks. Click a repeat or if block in the Program area to edit its children, then use `Back to Main Program` to return.
 
@@ -54,8 +54,7 @@ Repeat and if blocks contain child blocks. Click a repeat or if block in the Pro
 - Level 2: Plant Wheat - function calls with values.
 - Level 3: Grow and Harvest Wheat - time-based crop state and harvest.
 - Level 4: Repeat Automation - for loops.
-- Level 5: Smart Farming - if statements.
-- Level 6: Harvest Algorithm - conditions, loops, and algorithmic thinking.
+- Level 5: Harvest Algorithm - conditions, loops, and algorithmic thinking.
 
 ## File Structure
 
@@ -91,6 +90,7 @@ src/
   ui/
     CodePreviewPanel.js
     MissionPanel.js
+    PanelTabs.js
     ProgramPanel.js
     ShopPanel.js
     UIManager.js
