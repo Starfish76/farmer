@@ -25,30 +25,36 @@
     <aside class="side-panel">
       <header class="panel-header">
         <h1>Code Farm Lab</h1>
-        <p class="subtitle">농부는 대체되었다</p>
+        <p class="subtitle">Code-driven farm automation</p>
       </header>
 
       <div class="panel-section">
-        <div class="mission-bar">Mission: <span class="highlight">Robot movement test</span></div>
+        <div class="mission-bar">Mission: <span class="highlight">Build a movement program</span></div>
         <div class="status-bar">Status: <span class="status-value" data-state="stopped">stopped</span></div>
-        <div class="stats-bar">Coins: <span class="highlight">100</span> | Score: <span class="highlight">0</span></div>
+        <div class="stats-bar">
+          Coins: <span class="highlight" data-coins>20</span>
+          | Score: <span class="highlight" data-score>0</span>
+        </div>
       </div>
 
       <div class="panel-section block-shop">
         <h3>Block Shop</h3>
-        <div class="placeholder-box">Block shop area - coming later</div>
+        <div class="block-list" data-shop-list></div>
+        <h3 class="subheading">Owned Blocks</h3>
+        <div class="owned-list" data-owned-list></div>
       </div>
 
       <div class="panel-section program-area">
-        <h3>Program</h3>
-        <div class="placeholder-box">Program assembly area - coming later</div>
+        <div class="section-title-row">
+          <h3>Program</h3>
+          <button class="mini-btn" data-clear-program type="button">Clear Program</button>
+        </div>
+        <div class="program-list" data-program-list></div>
       </div>
 
       <div class="panel-section code-preview">
         <h3>Code Preview</h3>
-        <pre><code># Python style code
-def main():
-    pass</code></pre>
+        <pre><code data-code-preview># Add blocks to build a program</code></pre>
       </div>
 
       <div class="panel-section log-area">
