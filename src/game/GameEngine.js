@@ -34,6 +34,7 @@ export class GameEngine {
       harvestedWheatCount: 0,
       highestUnlockedLevel: 1,
       completedLevels: [],
+      mainGameStarted: false,
       logs: [],
       purchasedBlocks: [],
       programBlocks: [],
@@ -85,13 +86,22 @@ export class GameEngine {
       onNext: () => this.nextLevel(),
       onReset: () => this.resetLevel(),
       onResetAll: () => this.resetAll(),
+      onStartMainGame: () => this.startMainGame(),
     });
 
     this.initButtons();
-    this.applyLevel(this.levelManager.currentLevel, {
-      coinsOverride: savedData?.coins,
-      save: false,
-    });
+    if (this.gameState.mainGameStarted) {
+      this.startMainGame({
+        save: false,
+        coinsOverride: savedData?.coins,
+        purchasedBlocksOverride: savedData?.purchasedBlocks,
+      });
+    } else {
+      this.applyLevel(this.levelManager.currentLevel, {
+        coinsOverride: savedData?.coins,
+        save: false,
+      });
+    }
     this.saveProgress();
     window.addEventListener('resize', () => this.renderer.resize());
   }
@@ -114,6 +124,7 @@ export class GameEngine {
     this.gameState.purchasedBlocks = Array.isArray(savedData.purchasedBlocks) ? [...savedData.purchasedBlocks] : [];
     this.gameState.highestUnlockedLevel = savedData.highestUnlockedLevel ?? this.gameState.currentLevel;
     this.gameState.completedLevels = Array.isArray(savedData.completedLevels) ? [...savedData.completedLevels] : [];
+    this.gameState.mainGameStarted = savedData.mainGameStarted === true;
     return savedData;
   }
 
@@ -215,6 +226,17 @@ export class GameEngine {
     this.shopPanel.render();
     this.programPanel.render();
     this.codePreviewPanel.render();
+
+    if (this.gameState.mainGameStarted) {
+      this.missionPanel.hideForMainGame();
+      return;
+    }
+
+    if (this.isTutorialCompleteReady()) {
+      this.missionPanel.renderTutorialComplete();
+      return;
+    }
+
     this.missionPanel.render(this.levelManager.currentLevel, {
       canGoPrevious: this.levelManager.canGoPrevious(),
       canGoNext: this.levelManager.canGoNext(),
@@ -257,6 +279,11 @@ export class GameEngine {
   }
 
   resetLevel() {
+    if (this.gameState.mainGameStarted) {
+      this.startMainGame({ save: true });
+      return;
+    }
+
     this.applyLevel(this.levelManager.currentLevel);
   }
 
@@ -277,13 +304,56 @@ export class GameEngine {
     this.gameState.currentLevelIndex = 0;
     this.gameState.currentLevel = 1;
     this.gameState.levelComplete = false;
+    this.gameState.mainGameStarted = false;
     this.gameState.highestUnlockedLevel = 1;
     this.gameState.completedLevels = [];
-    this.gameState.purchasedBlocks = [];
+    this.gameState.purchasedBlocks = Array.isArray(options.purchasedBlocksOverride)
+      ? [...options.purchasedBlocksOverride]
+      : [];
     this.gameState.logs = [];
     this.ui.logs = this.gameState.logs;
     this.applyLevel(this.levelManager.goToLevel(0), { save: false });
     this.ui.addLog('All progress reset.');
+  }
+
+  startMainGame(options = {}) {
+    this.world.loadGrid([['soil']]);
+    this.robot.reset({ x: 0, y: 0, direction: 'east' });
+    this.queue.clear();
+    this.activeCommand = null;
+    this.blockProgram.clear();
+    this.gameState.mainGameStarted = true;
+    this.gameState.currentLevel = 'main';
+    this.gameState.levelComplete = false;
+    this.gameState.harvestedWheatCount = 0;
+    this.gameState.score = 0;
+    this.gameState.purchasedBlocks = [];
+    this.gameState.unlockedBlocks = [
+      'move',
+      'turn_left',
+      'turn_right',
+      'plant_wheat',
+      'plant_carrot',
+      'wait',
+      'harvest',
+      'water',
+      'repeat_2',
+      'repeat_3',
+      'repeat_5',
+      'if_on_soil',
+      'if_crop_ready',
+      'if_front_clear',
+    ];
+    this.economy.setCoins(options.coinsOverride ?? 30);
+    this.blockShop.ensureFreeBlocksOwned();
+    this.setState(GAME_STATE.STOPPED);
+    this.ui.updateStats(this.gameState);
+    this.renderPanels();
+    this.ui.addLog('Main game started. Earn 10000 coins.');
+
+    if (options.save !== false) {
+      this.saveProgress();
+    }
   }
 
   loadProgramCommands() {
@@ -418,9 +488,20 @@ export class GameEngine {
     );
   }
 
+  isTutorialCompleteReady() {
+    const lastLevel = this.levelManager.levels[this.levelManager.levels.length - 1];
+    return (
+      this.gameState.currentLevel === lastLevel.id &&
+      this.gameState.completedLevels.includes(lastLevel.id)
+    );
+  }
+
   render() {
     this.renderer.clear();
-    this.renderer.renderWorld(this.world, this.levelManager.currentLevel);
+    this.renderer.renderWorld(
+      this.world,
+      this.gameState.mainGameStarted ? null : this.levelManager.currentLevel,
+    );
     this.renderer.renderRobot(this.robot);
   }
 

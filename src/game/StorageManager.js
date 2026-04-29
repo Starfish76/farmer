@@ -20,6 +20,7 @@ export class StorageManager {
         purchasedBlocks: gameState.purchasedBlocks,
         highestUnlockedLevel: gameState.highestUnlockedLevel,
         completedLevels: gameState.completedLevels,
+        mainGameStarted: gameState.mainGameStarted,
       }));
     } catch (error) {
       console.warn('Failed to save game data.', error);
