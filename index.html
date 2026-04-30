@@ -57,7 +57,8 @@
 
       <div class="panel-section block-shop tab-panel active" data-tab-panel="blocks">
         <h3>Block Shop</h3>
-        <div class="block-list" data-shop-list></div>
+        <p class="shop-intro">Open the shop to browse blocks by purpose.</p>
+        <button class="shop-open-btn" data-open-shop type="button">Open Block Shop</button>
         <h3 class="subheading">Owned Blocks</h3>
         <div class="owned-list" data-owned-list></div>
       </div>
@@ -88,6 +89,44 @@
         <div class="log-content">System initialized...</div>
       </div>
     </aside>
+  </div>
+
+  <div class="shop-overlay hidden" data-shop-window>
+    <section class="shop-window" aria-label="Block Shop">
+      <header class="shop-window-header">
+        <div>
+          <p class="shop-kicker">Block Shop</p>
+          <h2>Choose automation tools</h2>
+        </div>
+        <button class="shop-close-btn" data-close-shop type="button">Close</button>
+      </header>
+
+      <div class="shop-category-grid">
+        <section class="shop-category" data-shop-group="Movement">
+          <h3>Movement</h3>
+          <p>Move and rotate the robot.</p>
+          <div class="shop-card-list" data-shop-category="Movement"></div>
+        </section>
+
+        <section class="shop-category" data-shop-group="Action">
+          <h3>Action</h3>
+          <p>Plant, harvest, water, and wait.</p>
+          <div class="shop-card-list" data-shop-category="Action"></div>
+        </section>
+
+        <section class="shop-category" data-shop-group="Loop">
+          <h3>Loop</h3>
+          <p>Repeat child blocks.</p>
+          <div class="shop-card-list" data-shop-category="Loop"></div>
+        </section>
+
+        <section class="shop-category" data-shop-group="Condition">
+          <h3>Condition</h3>
+          <p>Run child blocks only when a check passes.</p>
+          <div class="shop-card-list" data-shop-category="Condition"></div>
+        </section>
+      </div>
+    </section>
   </div>
 
   <script type="module" src="src/main.js"></script>
