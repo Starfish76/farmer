@@ -17,7 +17,38 @@
   flex-grow: 1;
   width: 100%;
   min-height: 0;
+  position: relative;
   background: radial-gradient(circle, #1e2233 0%, #0c0d12 100%);
+}
+
+.game-resource-overlay {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(78px, 1fr));
+  gap: 8px;
+  pointer-events: none;
+}
+
+.game-resource-overlay span {
+  border: 1px solid rgba(0, 210, 255, 0.30);
+  border-radius: 8px;
+  background: rgba(10, 13, 22, 0.72);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  color: #aab2d0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 8px 10px;
+  backdrop-filter: blur(6px);
+}
+
+.game-resource-overlay strong {
+  display: block;
+  margin-top: 2px;
+  color: #facc15;
+  font-size: 1.05rem;
 }
 
 canvas {

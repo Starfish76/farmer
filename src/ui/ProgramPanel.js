@@ -1,40 +1,26 @@
 export class ProgramPanel {
   constructor({
     program,
-    onMoveUp,
-    onMoveDown,
+    onMove,
     onRemove,
     onClear,
     onSelectContainer,
-    onBackToMain,
   }) {
     this.program = program;
-    this.onMoveUp = onMoveUp;
-    this.onMoveDown = onMoveDown;
+    this.onMove = onMove;
     this.onRemove = onRemove;
     this.onClear = onClear;
     this.onSelectContainer = onSelectContainer;
-    this.onBackToMain = onBackToMain;
     this.programList = document.querySelector('[data-program-list]');
     this.clearButton = document.querySelector('[data-clear-program]');
-    this.editingLabel = document.querySelector('[data-editing-container]');
-    this.backButton = document.querySelector('[data-back-main-program]');
+    this.draggedBlockId = null;
 
     this.clearButton?.addEventListener('click', () => this.onClear());
-    this.backButton?.addEventListener('click', () => this.onBackToMain());
   }
 
   render() {
     if (!this.programList) return;
     this.programList.textContent = '';
-
-    if (this.editingLabel) {
-      this.editingLabel.textContent = this.program.getSelectedContainerLabel();
-    }
-
-    if (this.backButton) {
-      this.backButton.disabled = this.program.getSelectedContainerLabel() === '메인 프로그램';
-    }
 
     const blocks = this.program.getBlocks();
     if (blocks.length === 0) {
@@ -48,6 +34,11 @@ export class ProgramPanel {
     this.renderBlockList(blocks, this.programList, 0);
   }
 
+  scrollToEnd() {
+    if (!this.programList) return;
+    this.programList.scrollTop = this.programList.scrollHeight;
+  }
+
   renderBlockList(blocks, parent, depth) {
     blocks.forEach((programBlock, index) => {
       const item = document.createElement('article');
@@ -55,14 +46,20 @@ export class ProgramPanel {
         ? 'program-block repeat-program-block'
         : 'program-block';
       item.dataset.category = programBlock.definition.category;
+      item.dataset.programBlockId = programBlock.id;
+      item.draggable = true;
+      item.style.marginLeft = `${depth * 18}px`;
+
       if (programBlock.id === this.program.gameState.selectedContainerId) {
         item.classList.add('selected-container');
       }
-      item.style.marginLeft = `${depth * 18}px`;
 
       if (programBlock.definition.hasChildren) {
+        item.title = '클릭하면 이 블록 안에 블록을 추가합니다. 다시 클릭하면 메인 프로그램으로 돌아갑니다.';
         item.addEventListener('click', () => this.onSelectContainer(programBlock.id));
       }
+
+      this.attachDragHandlers(item, programBlock.id);
 
       const label = document.createElement('span');
       label.textContent = `${index + 1}. ${programBlock.definition.name}`;
@@ -71,15 +68,7 @@ export class ProgramPanel {
       const controls = document.createElement('div');
       controls.className = 'program-actions';
       controls.append(
-        this.createActionButton('위', (event) => {
-          event.stopPropagation();
-          this.onMoveUp(programBlock.id);
-        }, index === 0),
-        this.createActionButton('아래', (event) => {
-          event.stopPropagation();
-          this.onMoveDown(programBlock.id);
-        }, index === blocks.length - 1),
-        this.createActionButton('삭제', (event) => {
+        this.createDeleteButton((event) => {
           event.stopPropagation();
           this.onRemove(programBlock.id);
         }),
@@ -102,13 +91,63 @@ export class ProgramPanel {
     });
   }
 
-  createActionButton(label, handler, disabled = false) {
+  attachDragHandlers(item, programBlockId) {
+    item.addEventListener('dragstart', (event) => {
+      this.draggedBlockId = programBlockId;
+      item.classList.add('dragging');
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', programBlockId);
+    });
+
+    item.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      if (!this.draggedBlockId || this.draggedBlockId === programBlockId) return;
+
+      const position = getDropPosition(item, event.clientY);
+      item.classList.toggle('drop-before', position === 'before');
+      item.classList.toggle('drop-after', position === 'after');
+    });
+
+    item.addEventListener('dragleave', () => {
+      item.classList.remove('drop-before', 'drop-after');
+    });
+
+    item.addEventListener('drop', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const draggedBlockId = event.dataTransfer.getData('text/plain') || this.draggedBlockId;
+      const position = getDropPosition(item, event.clientY);
+      item.classList.remove('drop-before', 'drop-after');
+
+      if (draggedBlockId && draggedBlockId !== programBlockId) {
+        this.onMove(draggedBlockId, programBlockId, position);
+      }
+    });
+
+    item.addEventListener('dragend', () => {
+      this.draggedBlockId = null;
+      this.clearDropClasses();
+    });
+  }
+
+  clearDropClasses() {
+    if (!this.programList) return;
+    for (const item of this.programList.querySelectorAll('.program-block')) {
+      item.classList.remove('dragging', 'drop-before', 'drop-after');
+    }
+  }
+
+  createDeleteButton(handler) {
     const button = document.createElement('button');
     button.className = 'icon-btn';
     button.type = 'button';
-    button.textContent = label;
-    button.disabled = disabled;
+    button.textContent = '삭제';
     button.addEventListener('click', handler);
     return button;
   }
+}
+
+function getDropPosition(item, pointerY) {
+  const rect = item.getBoundingClientRect();
+  return pointerY < rect.top + rect.height / 2 ? 'before' : 'after';
 }

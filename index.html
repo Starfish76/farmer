@@ -12,6 +12,10 @@
   <div class="app-container">
     <main class="game-area">
       <div id="canvas-container">
+        <div class="game-resource-overlay" aria-label="현재 자원">
+          <span>코인 <strong data-coins>20</strong></span>
+          <span>점수 <strong data-score>0</strong></span>
+        </div>
         <canvas id="game-canvas"></canvas>
       </div>
       <div class="bottom-controls">
@@ -69,10 +73,6 @@
         <div class="quick-add">
           <div class="quick-add-title">블록 추가</div>
           <div class="owned-list compact-owned-list" data-program-owned-list></div>
-        </div>
-        <div class="editing-bar">
-          편집 중: <span data-editing-container>메인 프로그램</span>
-          <button class="mini-btn" data-back-main-program type="button">메인 프로그램으로</button>
         </div>
         <div class="program-list" data-program-list></div>
       </div>

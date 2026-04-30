@@ -23,6 +23,11 @@ export class BlockProgram {
     const definition = getBlockDefinition(programBlock.blockId);
     if (!definition?.hasChildren) return false;
 
+    if (this.gameState.selectedContainerId === programBlockId) {
+      this.selectMainProgram();
+      return true;
+    }
+
     this.gameState.selectedContainerId = programBlockId;
     return true;
   }
@@ -39,20 +44,22 @@ export class BlockProgram {
     return definition?.name ?? '메인 프로그램';
   }
 
-  moveUp(programBlockId) {
-    const location = this.findLocation(programBlockId);
-    if (!location || location.index <= 0) return;
+  moveTo(programBlockId, targetBlockId, position = 'before') {
+    const source = this.findLocation(programBlockId);
+    const target = this.findLocation(targetBlockId);
+    if (!source || !target || source.block === target.block) return false;
+    if (source.container !== target.container) return false;
 
-    const [block] = location.container.splice(location.index, 1);
-    location.container.splice(location.index - 1, 0, block);
-  }
+    const [block] = source.container.splice(source.index, 1);
+    const targetIndex = source.container.findIndex((item) => item.id === targetBlockId);
+    if (targetIndex < 0) {
+      source.container.splice(source.index, 0, block);
+      return false;
+    }
 
-  moveDown(programBlockId) {
-    const location = this.findLocation(programBlockId);
-    if (!location || location.index >= location.container.length - 1) return;
-
-    const [block] = location.container.splice(location.index, 1);
-    location.container.splice(location.index + 1, 0, block);
+    const insertIndex = position === 'after' ? targetIndex + 1 : targetIndex;
+    source.container.splice(insertIndex, 0, block);
+    return true;
   }
 
   remove(programBlockId) {

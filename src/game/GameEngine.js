@@ -70,12 +70,12 @@ export class GameEngine {
     });
     this.programPanel = new ProgramPanel({
       program: this.blockProgram,
-      onMoveUp: (programBlockId) => this.moveProgramBlockUp(programBlockId),
-      onMoveDown: (programBlockId) => this.moveProgramBlockDown(programBlockId),
+      onMove: (programBlockId, targetBlockId, position) => (
+        this.moveProgramBlock(programBlockId, targetBlockId, position)
+      ),
       onRemove: (programBlockId) => this.removeProgramBlock(programBlockId),
       onClear: () => this.clearProgram(),
       onSelectContainer: (programBlockId) => this.selectProgramContainer(programBlockId),
-      onBackToMain: () => this.backToMainProgram(),
     });
     this.codePreviewPanel = new CodePreviewPanel({
       codeGenerator: this.codeGenerator,
@@ -184,6 +184,7 @@ export class GameEngine {
     if (added) {
       this.ui.addLog('프로그램에 블록을 추가했습니다.');
       this.renderPanels();
+      this.programPanel.scrollToEnd();
     }
   }
 
@@ -198,14 +199,10 @@ export class GameEngine {
     this.renderPanels();
   }
 
-  moveProgramBlockUp(programBlockId) {
-    this.blockProgram.moveUp(programBlockId);
-    this.renderPanels();
-  }
-
-  moveProgramBlockDown(programBlockId) {
-    this.blockProgram.moveDown(programBlockId);
-    this.renderPanels();
+  moveProgramBlock(programBlockId, targetBlockId, position) {
+    if (this.blockProgram.moveTo(programBlockId, targetBlockId, position)) {
+      this.renderPanels();
+    }
   }
 
   removeProgramBlock(programBlockId) {

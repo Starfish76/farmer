@@ -2,8 +2,8 @@ export class UIManager {
   constructor(gameState = null) {
     this.logContainer = document.querySelector('.log-content');
     this.statusText = document.querySelector('.status-value');
-    this.coinsText = document.querySelector('[data-coins]');
-    this.scoreText = document.querySelector('[data-score]');
+    this.coinsTexts = [...document.querySelectorAll('[data-coins]')];
+    this.scoreTexts = [...document.querySelectorAll('[data-score]')];
     this.logs = gameState?.logs ?? [];
   }
 
@@ -41,12 +41,12 @@ export class UIManager {
   }
 
   updateStats({ coins, score }) {
-    if (this.coinsText) {
-      this.coinsText.textContent = coins;
+    for (const coinsText of this.coinsTexts) {
+      coinsText.textContent = coins;
     }
 
-    if (this.scoreText) {
-      this.scoreText.textContent = score;
+    for (const scoreText of this.scoreTexts) {
+      scoreText.textContent = score;
     }
   }
 }

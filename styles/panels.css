@@ -141,6 +141,13 @@
   display: block;
 }
 
+.program-area.tab-panel.active {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 370px
+}
+
 .placeholder-box {
   background-color: rgba(0, 0, 0, 0.3);
   border: 1px dashed #4b5270;
@@ -190,6 +197,34 @@
   gap: 8px;
 }
 
+.program-list {
+  max-height: min(340px, calc(100vh - 320px));
+  min-height: 130px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+  scrollbar-color: #4b5270 rgba(0, 0, 0, 0.22);
+  scrollbar-width: thin;
+}
+
+.program-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.program-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 999px;
+}
+
+.program-list::-webkit-scrollbar-thumb {
+  background: #4b5270;
+  border-radius: 999px;
+}
+
+.program-list::-webkit-scrollbar-thumb:hover {
+  background: #66708f;
+}
+
 .block-card,
 .program-block {
   display: flex;
@@ -200,6 +235,29 @@
   border: 1px solid #3d435c;
   border-radius: 6px;
   padding: 10px;
+}
+
+.program-block {
+  cursor: grab;
+  user-select: none;
+}
+
+.program-block:active {
+  cursor: grabbing;
+}
+
+.program-block.dragging {
+  opacity: 0.45;
+}
+
+.program-block.drop-before {
+  border-top-color: #facc15;
+  box-shadow: 0 -3px 0 #facc15;
+}
+
+.program-block.drop-after {
+  border-bottom-color: #facc15;
+  box-shadow: 0 3px 0 #facc15;
 }
 
 .block-card h4 {
@@ -291,19 +349,6 @@
   margin-bottom: 0;
 }
 
-.editing-bar {
-  display: grid;
-  gap: 7px;
-  margin: 8px 0;
-  color: #aab2d0;
-  font-size: 0.82rem;
-}
-
-.editing-bar span {
-  color: #facc15;
-  font-weight: bold;
-}
-
 .quick-add {
   display: grid;
   gap: 7px;
@@ -338,6 +383,8 @@
   color: #f3f4f6;
   font-size: 0.86rem;
   font-weight: bold;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .repeat-program-block {
