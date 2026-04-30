@@ -14,24 +14,24 @@ export class BlockShop {
     const block = getBlockDefinition(blockId);
 
     if (!block) {
-      return { ok: false, message: `Unknown block: ${blockId}` };
+      return { ok: false, message: `알 수 없는 블록입니다: ${blockId}` };
     }
 
     if (this.isPurchased(blockId)) {
-      return { ok: true, message: `${block.name} already owned.` };
+      return { ok: true, message: `${block.name} 블록은 이미 보유 중입니다.` };
     }
 
     if (!this.isUnlocked(blockId)) {
-      return { ok: false, message: `${block.name} is locked in this level.` };
+      return { ok: false, message: `${block.name} 블록은 이 레벨에서 아직 사용할 수 없습니다.` };
     }
 
     if (this.gameState.coins < block.cost) {
-      return { ok: false, message: `Not enough coins for ${block.name}.` };
+      return { ok: false, message: `${block.name} 블록을 구매하기에 코인이 부족합니다.` };
     }
 
     this.gameState.coins -= block.cost;
     this.gameState.purchasedBlocks.push(blockId);
-    return { ok: true, message: `Purchased ${block.name}.` };
+    return { ok: true, message: `${block.name} 블록을 구매했습니다.` };
   }
 
   isPurchased(blockId) {

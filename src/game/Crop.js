@@ -19,7 +19,7 @@ export const CROPS = {
 
 export function createCrop(type, plantedAt) {
   if (!CROPS[type]) {
-    throw new Error(`Unknown crop type: ${type}`);
+    throw new Error(`알 수 없는 작물 종류입니다: ${type}`);
   }
 
   return {

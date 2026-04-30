@@ -3,7 +3,6 @@ export class ShopPanel {
     this.shop = shop;
     this.onPurchase = onPurchase;
     this.onAddBlock = onAddBlock;
-    this.ownedList = document.querySelector('[data-owned-list]');
     this.programOwnedList = document.querySelector('[data-program-owned-list]');
     this.shopWindow = document.querySelector('[data-shop-window]');
     this.openShopButton = document.querySelector('[data-open-shop]');
@@ -24,7 +23,6 @@ export class ShopPanel {
 
   render() {
     this.renderShopCategories();
-    this.renderOwnedList(this.ownedList);
     this.renderOwnedList(this.programOwnedList, { compact: true });
   }
 
@@ -56,7 +54,7 @@ export class ShopPanel {
       if (!groupsWithBlocks.has(group)) {
         const empty = document.createElement('div');
         empty.className = 'shop-empty';
-        empty.textContent = 'No blocks available yet.';
+        empty.textContent = '아직 사용할 수 있는 블록이 없습니다.';
         container.append(empty);
       }
     }
@@ -74,13 +72,13 @@ export class ShopPanel {
     const description = document.createElement('p');
     description.textContent = block.description;
     const meta = document.createElement('span');
-    meta.textContent = `${getShopGroup(block)} / ${block.cost} coins`;
+    meta.textContent = `${getShopGroupLabel(block)} / ${block.cost}코인`;
     content.append(title, description, meta);
 
     const button = document.createElement('button');
     button.className = 'mini-btn';
     button.type = 'button';
-    button.textContent = isOwned ? 'Owned' : 'Buy';
+    button.textContent = isOwned ? '보유 중' : '구매';
     button.disabled = isOwned;
     button.addEventListener('click', () => this.onPurchase(block.id));
 
@@ -98,7 +96,7 @@ export class ShopPanel {
       button.dataset.category = block.category;
       button.type = 'button';
       button.textContent = block.name;
-      button.title = `Add ${block.name} to Program`;
+      button.title = `${block.name} 블록을 프로그램에 추가`;
       button.addEventListener('click', () => this.onAddBlock(block.id));
       container.append(button);
     }
@@ -110,4 +108,12 @@ function getShopGroup(block) {
   if (block.repeatCount) return 'Loop';
   if (block.conditionType) return 'Condition';
   return 'Action';
+}
+
+function getShopGroupLabel(block) {
+  const group = getShopGroup(block);
+  if (group === 'Movement') return '이동';
+  if (group === 'Loop') return '반복';
+  if (group === 'Condition') return '조건';
+  return '작업';
 }

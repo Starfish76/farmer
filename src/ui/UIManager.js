@@ -36,7 +36,7 @@ export class UIManager {
 
   updateStatus(state) {
     if (!this.statusText) return;
-    this.statusText.textContent = state;
+    this.statusText.textContent = getStatusLabel(state);
     this.statusText.dataset.state = state;
   }
 
@@ -49,4 +49,13 @@ export class UIManager {
       this.scoreText.textContent = score;
     }
   }
+}
+
+function getStatusLabel(state) {
+  if (state === 'stopped') return '정지';
+  if (state === 'running') return '실행 중';
+  if (state === 'paused') return '일시정지';
+  if (state === 'error') return '오류';
+  if (state === 'success') return '완료';
+  return state;
 }

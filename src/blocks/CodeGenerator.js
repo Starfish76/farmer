@@ -3,7 +3,7 @@ import { getBlockDefinition } from './BlockDefinitions.js';
 export class CodeGenerator {
   generate(programBlocks) {
     if (programBlocks.length === 0) {
-      return '# Add blocks to build a program';
+      return '# 블록을 추가해서 프로그램을 만드세요';
     }
 
     return this.generateBlocks(programBlocks).join('\n');

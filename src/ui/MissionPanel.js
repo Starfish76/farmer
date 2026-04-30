@@ -28,7 +28,7 @@ export class MissionPanel {
     this.setTutorialRowsVisible(true);
 
     if (this.title) {
-      this.title.textContent = levelComplete ? `${level.title} - Complete` : level.title;
+      this.title.textContent = levelComplete ? `${level.title} - 완료` : level.title;
       this.title.dataset.complete = levelComplete ? 'true' : 'false';
     }
     if (this.mission) this.mission.textContent = level.mission;

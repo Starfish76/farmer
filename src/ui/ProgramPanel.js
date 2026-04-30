@@ -33,14 +33,14 @@ export class ProgramPanel {
     }
 
     if (this.backButton) {
-      this.backButton.disabled = this.program.getSelectedContainerLabel() === 'Main Program';
+      this.backButton.disabled = this.program.getSelectedContainerLabel() === '메인 프로그램';
     }
 
     const blocks = this.program.getBlocks();
     if (blocks.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'placeholder-box compact';
-      empty.textContent = 'Click an owned block to add it here.';
+      empty.textContent = '보유한 블록을 클릭하면 여기에 추가됩니다.';
       this.programList.append(empty);
       return;
     }
@@ -71,15 +71,15 @@ export class ProgramPanel {
       const controls = document.createElement('div');
       controls.className = 'program-actions';
       controls.append(
-        this.createActionButton('Up', (event) => {
+        this.createActionButton('위', (event) => {
           event.stopPropagation();
           this.onMoveUp(programBlock.id);
         }, index === 0),
-        this.createActionButton('Down', (event) => {
+        this.createActionButton('아래', (event) => {
           event.stopPropagation();
           this.onMoveDown(programBlock.id);
         }, index === blocks.length - 1),
-        this.createActionButton('Del', (event) => {
+        this.createActionButton('삭제', (event) => {
           event.stopPropagation();
           this.onRemove(programBlock.id);
         }),
@@ -93,7 +93,7 @@ export class ProgramPanel {
           const emptyChild = document.createElement('div');
           emptyChild.className = 'repeat-empty';
           emptyChild.style.marginLeft = `${(depth + 1) * 18}px`;
-          emptyChild.textContent = 'Click this repeat block, then add owned blocks.';
+          emptyChild.textContent = '이 블록을 클릭한 뒤 안에 넣을 블록을 추가하세요.';
           parent.append(emptyChild);
         } else {
           this.renderBlockList(programBlock.children, parent, depth + 1);

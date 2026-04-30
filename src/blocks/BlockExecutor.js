@@ -15,11 +15,11 @@ export class BlockExecutor {
         return this.move(time);
       case 'turn_left':
         this.robot.turnLeft();
-        this.ui.addLog('Turned left');
+        this.ui.addLog('왼쪽으로 회전했습니다.');
         return { status: 'done' };
       case 'turn_right':
         this.robot.turnRight();
-        this.ui.addLog('Turned right');
+        this.ui.addLog('오른쪽으로 회전했습니다.');
         return { status: 'done' };
       case 'wait':
         return { status: 'waiting', endsAt: time + 1000 };
@@ -30,14 +30,14 @@ export class BlockExecutor {
       case 'harvest':
         return this.harvest(time);
       case 'water':
-        this.ui.addLog('Watered tile');
+        this.ui.addLog('현재 칸에 물을 줬습니다.');
         return { status: 'done' };
       case 'repeat':
         return this.repeat(command);
       case 'if':
         return this.condition(command, time);
       default:
-        this.ui.addLog(`Unknown command: ${command.type}`);
+        this.ui.addLog(`알 수 없는 명령입니다: ${command.type}`);
         return { status: 'error' };
     }
   }
@@ -46,12 +46,12 @@ export class BlockExecutor {
     const next = this.robot.getFrontPos();
 
     if (!this.world.isWalkable(next.x, next.y)) {
-      this.ui.addLog('Blocked');
+      this.ui.addLog('이동할 수 없습니다.');
       return { status: 'done' };
     }
 
     this.robot.moveTo(next.x, next.y, time);
-    this.ui.addLog(`Moved to (${next.x}, ${next.y})`);
+    this.ui.addLog(`(${next.x}, ${next.y}) 위치로 이동했습니다.`);
     return { status: 'done' };
   }
 
@@ -59,7 +59,7 @@ export class BlockExecutor {
     const result = this.world.plantCropAt(this.robot.gridX, this.robot.gridY, cropType, time);
 
     if (result.ok) {
-      this.ui.addLog(`Planted ${cropType}`);
+      this.ui.addLog(`${getCropName(cropType)}을 심었습니다.`);
     } else {
       this.ui.addLog(result.message);
     }
@@ -71,7 +71,7 @@ export class BlockExecutor {
     const crop = this.world.getCropAt(this.robot.gridX, this.robot.gridY);
 
     if (!crop) {
-      this.ui.addLog('Nothing to harvest');
+      this.ui.addLog('수확할 작물이 없습니다.');
       return { status: 'done' };
     }
 
@@ -79,7 +79,7 @@ export class BlockExecutor {
 
     if (crop.growthStage !== 'grown') {
       const remaining = getRemainingGrowthSeconds(crop, time).toFixed(1);
-      this.ui.addLog(`Crop is not ready. ${remaining}s remaining`);
+      this.ui.addLog(`아직 다 자라지 않았습니다. ${remaining}초 남았습니다.`);
       return { status: 'done' };
     }
 
@@ -93,7 +93,7 @@ export class BlockExecutor {
       this.gameState.harvestedWheatCount += 1;
     }
     this.ui.updateStats(this.gameState);
-    this.ui.addLog(`Harvested ${crop.type} +${cropDefinition.rewardCoins} coins`);
+    this.ui.addLog(`${getCropName(crop.type)} 수확 완료. +${cropDefinition.rewardCoins}코인`);
 
     return { status: 'done' };
   }
@@ -112,11 +112,11 @@ export class BlockExecutor {
     const passed = this.evaluateCondition(command.conditionType, time);
 
     if (!passed) {
-      this.ui.addLog(`Condition ${command.conditionType}: false`);
+      this.ui.addLog(`조건 ${getConditionName(command.conditionType)}: 거짓`);
       return { status: 'done' };
     }
 
-    this.ui.addLog(`Condition ${command.conditionType}: true`);
+    this.ui.addLog(`조건 ${getConditionName(command.conditionType)}: 참`);
     return {
       status: 'enqueue',
       commands: cloneCommands(command.children ?? []),
@@ -140,4 +140,15 @@ function cloneCommands(commands) {
     ...command,
     children: command.children ? cloneCommands(command.children) : undefined,
   }));
+}
+
+function getCropName(cropType) {
+  if (cropType === 'wheat') return '밀';
+  if (cropType === 'carrot') return '당근';
+  return cropType;
+}
+
+function getConditionName(conditionType) {
+  if (conditionType === 'crop_ready') return '작물 준비됨';
+  return conditionType;
 }

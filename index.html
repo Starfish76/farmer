@@ -15,78 +15,76 @@
         <canvas id="game-canvas"></canvas>
       </div>
       <div class="bottom-controls">
-        <button class="btn btn-primary" id="btn-run" type="button">Run</button>
-        <button class="btn btn-secondary" id="btn-step" type="button">Step</button>
-        <button class="btn btn-danger" id="btn-stop" type="button">Stop</button>
-        <button class="btn btn-warning" id="btn-reset" type="button">Reset</button>
+        <button class="btn btn-primary" id="btn-run" type="button">실행</button>
+        <button class="btn btn-secondary" id="btn-step" type="button">한 단계</button>
+        <button class="btn btn-danger" id="btn-stop" type="button">정지</button>
+        <button class="btn btn-warning" id="btn-reset" type="button">다시 시작</button>
       </div>
     </main>
 
     <aside class="side-panel">
       <header class="panel-header">
         <h1>Code Farm Lab</h1>
-        <p class="subtitle">Code-driven farm automation</p>
+        <p class="subtitle">블록으로 배우는 농장 자동화</p>
       </header>
 
       <div class="panel-section mission-panel">
-        <h3 data-level-title>Level 1: First Steps</h3>
-        <div class="mission-bar">Mission: <span class="highlight" data-level-mission>Move the robot to the target tile.</span></div>
-        <div class="mission-detail">Python Concept: <span data-level-concept></span></div>
-        <div class="mission-detail">Hint: <span data-level-hint></span></div>
-        <div class="mission-detail">Required Blocks: <span data-level-required-blocks></span></div>
-        <div class="status-bar">Status: <span class="status-value" data-state="stopped">stopped</span></div>
+        <h3 data-level-title>레벨 1: 첫 걸음</h3>
+        <div class="mission-bar">미션: <span class="highlight" data-level-mission>로봇을 목표 타일까지 이동하세요.</span></div>
+        <div class="mission-detail">파이썬 개념: <span data-level-concept></span></div>
+        <div class="mission-detail">힌트: <span data-level-hint></span></div>
+        <div class="mission-detail">필요 블록: <span data-level-required-blocks></span></div>
+        <div class="status-bar">상태: <span class="status-value" data-state="stopped">정지</span></div>
         <div class="stats-bar">
-          Coins: <span class="highlight" data-coins>20</span>
-          | Score: <span class="highlight" data-score>0</span>
+          코인: <span class="highlight" data-coins>20</span>
+          | 점수: <span class="highlight" data-score>0</span>
         </div>
         <div class="level-controls">
-          <button class="mini-btn" data-prev-level type="button">Previous Level</button>
-          <button class="mini-btn" data-reset-level type="button">Reset Level</button>
-          <button class="mini-btn" data-next-level type="button">Next Level</button>
-          <button class="mini-btn danger-mini" data-reset-all type="button">Reset All</button>
+          <button class="mini-btn" data-prev-level type="button">이전 레벨</button>
+          <button class="mini-btn" data-reset-level type="button">레벨 다시 시작</button>
+          <button class="mini-btn" data-next-level type="button">다음 레벨</button>
+          <button class="mini-btn danger-mini" data-reset-all type="button">전체 초기화</button>
         </div>
         <button class="main-start-btn" data-start-main-game type="button" hidden>게임 시작</button>
       </div>
 
       <nav class="side-tabs" aria-label="Side panel sections">
-        <button class="tab-btn active" data-tab-button="blocks" type="button">Blocks</button>
-        <button class="tab-btn" data-tab-button="program" type="button">Program</button>
-        <button class="tab-btn" data-tab-button="code" type="button">Code</button>
-        <button class="tab-btn" data-tab-button="log" type="button">Log</button>
+        <button class="tab-btn active" data-tab-button="blocks" type="button">블록</button>
+        <button class="tab-btn" data-tab-button="program" type="button">프로그램</button>
+        <button class="tab-btn" data-tab-button="code" type="button">코드</button>
+        <button class="tab-btn" data-tab-button="log" type="button">로그</button>
       </nav>
 
       <div class="panel-section block-shop tab-panel active" data-tab-panel="blocks">
-        <h3>Block Shop</h3>
-        <p class="shop-intro">Open the shop to browse blocks by purpose.</p>
-        <button class="shop-open-btn" data-open-shop type="button">Open Block Shop</button>
-        <h3 class="subheading">Owned Blocks</h3>
-        <div class="owned-list" data-owned-list></div>
+        <h3>블록 상점</h3>
+        <p class="shop-intro">상점에서 목적별 블록을 확인하고 구매하세요.</p>
+        <button class="shop-open-btn" data-open-shop type="button">블록 상점 열기</button>
       </div>
 
       <div class="panel-section program-area tab-panel" data-tab-panel="program">
         <div class="section-title-row">
-          <h3>Program</h3>
-          <button class="mini-btn" data-clear-program type="button">Clear Program</button>
+          <h3>프로그램</h3>
+          <button class="mini-btn" data-clear-program type="button">프로그램 비우기</button>
         </div>
         <div class="quick-add">
-          <div class="quick-add-title">Add Blocks</div>
+          <div class="quick-add-title">블록 추가</div>
           <div class="owned-list compact-owned-list" data-program-owned-list></div>
         </div>
         <div class="editing-bar">
-          Editing: <span data-editing-container>Main Program</span>
-          <button class="mini-btn" data-back-main-program type="button">Back to Main Program</button>
+          편집 중: <span data-editing-container>메인 프로그램</span>
+          <button class="mini-btn" data-back-main-program type="button">메인 프로그램으로</button>
         </div>
         <div class="program-list" data-program-list></div>
       </div>
 
       <div class="panel-section code-preview tab-panel" data-tab-panel="code">
-        <h3>Code Preview</h3>
-        <pre><code data-code-preview># Add blocks to build a program</code></pre>
+        <h3>코드 미리보기</h3>
+        <pre><code data-code-preview># 블록을 추가해서 프로그램을 만드세요</code></pre>
       </div>
 
       <div class="panel-section log-area tab-panel" data-tab-panel="log">
-        <h3>Log</h3>
-        <div class="log-content">System initialized...</div>
+        <h3>로그</h3>
+        <div class="log-content">시스템 준비 완료...</div>
       </div>
     </aside>
   </div>
@@ -95,34 +93,34 @@
     <section class="shop-window" aria-label="Block Shop">
       <header class="shop-window-header">
         <div>
-          <p class="shop-kicker">Block Shop</p>
-          <h2>Choose automation tools</h2>
+          <p class="shop-kicker">블록 상점</p>
+          <h2>자동화 도구 선택</h2>
         </div>
-        <button class="shop-close-btn" data-close-shop type="button">Close</button>
+        <button class="shop-close-btn" data-close-shop type="button">닫기</button>
       </header>
 
       <div class="shop-category-grid">
         <section class="shop-category" data-shop-group="Movement">
-          <h3>Movement</h3>
-          <p>Move and rotate the robot.</p>
+          <h3>이동</h3>
+          <p>로봇을 이동하거나 방향을 바꿉니다.</p>
           <div class="shop-card-list" data-shop-category="Movement"></div>
         </section>
 
         <section class="shop-category" data-shop-group="Action">
-          <h3>Action</h3>
-          <p>Plant, harvest, water, and wait.</p>
+          <h3>작업</h3>
+          <p>심기, 수확, 물주기, 대기를 실행합니다.</p>
           <div class="shop-card-list" data-shop-category="Action"></div>
         </section>
 
         <section class="shop-category" data-shop-group="Loop">
-          <h3>Loop</h3>
-          <p>Repeat child blocks.</p>
+          <h3>반복</h3>
+          <p>안쪽 블록을 여러 번 실행합니다.</p>
           <div class="shop-card-list" data-shop-category="Loop"></div>
         </section>
 
         <section class="shop-category" data-shop-group="Condition">
-          <h3>Condition</h3>
-          <p>Run child blocks only when a check passes.</p>
+          <h3>조건</h3>
+          <p>조건이 맞을 때만 안쪽 블록을 실행합니다.</p>
           <div class="shop-card-list" data-shop-category="Condition"></div>
         </section>
       </div>

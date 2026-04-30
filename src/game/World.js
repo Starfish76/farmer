@@ -41,11 +41,11 @@ export class World {
     const tile = this.getTile(x, y);
 
     if (!tile || tile.type !== 'soil') {
-      return { ok: false, message: 'Cannot plant here' };
+      return { ok: false, message: '여기에는 심을 수 없습니다.' };
     }
 
     if (tile.crop) {
-      return { ok: false, message: 'Tile already has a crop' };
+      return { ok: false, message: '이미 작물이 있는 칸입니다.' };
     }
 
     tile.crop = createCrop(cropType, now);

@@ -150,7 +150,7 @@ export class GameEngine {
     this.setState(GAME_STATE.STOPPED);
     this.ui.updateStats(this.gameState);
     this.renderPanels();
-    this.ui.addLog(`Loaded ${level.title}`);
+    this.ui.addLog(`${level.title}을 불러왔습니다.`);
     if (options.save !== false) {
       this.saveProgress();
     }
@@ -176,13 +176,13 @@ export class GameEngine {
 
   addProgramBlock(blockId) {
     if (!this.blockShop.isUnlocked(blockId) || !this.blockShop.isPurchased(blockId)) {
-      this.ui.addLog('Block is not available in this level.');
+      this.ui.addLog('이 레벨에서 사용할 수 없는 블록입니다.');
       return;
     }
 
     const added = this.blockProgram.addBlock(blockId);
     if (added) {
-      this.ui.addLog('Added block to program.');
+      this.ui.addLog('프로그램에 블록을 추가했습니다.');
       this.renderPanels();
     }
   }
@@ -218,7 +218,7 @@ export class GameEngine {
     this.queue.clear();
     this.activeCommand = null;
     this.renderPanels();
-    this.ui.addLog('Program cleared.');
+    this.ui.addLog('프로그램을 비웠습니다.');
   }
 
   renderPanels() {
@@ -253,7 +253,7 @@ export class GameEngine {
 
     this.setState(GAME_STATE.RUNNING);
     this.lastTick = 0;
-    this.ui.addLog('Starting program...');
+    this.ui.addLog('프로그램 실행을 시작합니다.');
   }
 
   step() {
@@ -274,7 +274,7 @@ export class GameEngine {
     if (this.state !== GAME_STATE.STOPPED) {
       this.activeCommand = null;
       this.setState(GAME_STATE.PAUSED);
-      this.ui.addLog('Program paused.');
+      this.ui.addLog('프로그램을 일시정지했습니다.');
     }
   }
 
@@ -307,13 +307,11 @@ export class GameEngine {
     this.gameState.mainGameStarted = false;
     this.gameState.highestUnlockedLevel = 1;
     this.gameState.completedLevels = [];
-    this.gameState.purchasedBlocks = Array.isArray(options.purchasedBlocksOverride)
-      ? [...options.purchasedBlocksOverride]
-      : [];
+    this.gameState.purchasedBlocks = [];
     this.gameState.logs = [];
     this.ui.logs = this.gameState.logs;
     this.applyLevel(this.levelManager.goToLevel(0), { save: false });
-    this.ui.addLog('All progress reset.');
+    this.ui.addLog('전체 진행 상황을 초기화했습니다.');
   }
 
   startMainGame(options = {}) {
@@ -345,7 +343,7 @@ export class GameEngine {
     this.setState(GAME_STATE.STOPPED);
     this.ui.updateStats(this.gameState);
     this.renderPanels();
-    this.ui.addLog('Main game started. Earn 10000 coins.');
+    this.ui.addLog('본 게임을 시작했습니다. 10000코인을 모아보세요.');
 
     if (options.save !== false) {
       this.saveProgress();
@@ -361,7 +359,7 @@ export class GameEngine {
     }
 
     if (result.commands.length === 0) {
-      this.ui.addLog('Program is empty.');
+      this.ui.addLog('프로그램이 비어 있습니다.');
       return false;
     }
 
@@ -432,7 +430,7 @@ export class GameEngine {
     if (!this.activeCommand) return;
 
     if (time >= this.activeCommand.endsAt) {
-      this.ui.addLog('Waited 1 second');
+      this.ui.addLog('1초 기다렸습니다.');
       this.activeCommand = null;
       this.lastTick = time;
       this.saveProgress();
@@ -448,7 +446,7 @@ export class GameEngine {
       this.setState(GAME_STATE.STOPPED);
     }
 
-    this.ui.addLog('Program finished.');
+    this.ui.addLog('프로그램 실행이 끝났습니다.');
   }
 
   checkLevelComplete() {
@@ -466,7 +464,7 @@ export class GameEngine {
       this.queue.clear();
       this.activeCommand = null;
       this.setState(GAME_STATE.SUCCESS);
-      this.ui.addLog('Level Complete!');
+      this.ui.addLog('레벨 완료!');
       this.renderPanels();
       this.saveProgress();
     }

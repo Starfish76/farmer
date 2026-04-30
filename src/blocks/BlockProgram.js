@@ -33,10 +33,10 @@ export class BlockProgram {
 
   getSelectedContainerLabel() {
     const selected = this.findBlock(this.gameState.selectedContainerId);
-    if (!selected) return 'Main Program';
+    if (!selected) return '메인 프로그램';
 
     const definition = getBlockDefinition(selected.blockId);
-    return definition?.name ?? 'Main Program';
+    return definition?.name ?? '메인 프로그램';
   }
 
   moveUp(programBlockId) {
@@ -79,7 +79,7 @@ export class BlockProgram {
     const estimatedCount = this.estimateCommandCount(this.gameState.programBlocks);
 
     if (estimatedCount > maxCommands) {
-      return { ok: false, message: 'Too many commands. Try a shorter program.' };
+      return { ok: false, message: '명령이 너무 많습니다. 더 짧은 프로그램을 만들어 주세요.' };
     }
 
     return {
@@ -95,7 +95,7 @@ export class BlockProgram {
       if (!definition) continue;
 
       if (definition.hasChildren && (programBlock.children ?? []).length === 0) {
-        return { ok: false, message: `${definition.name} has no child blocks.` };
+        return { ok: false, message: `${definition.name} 안에 실행할 블록이 없습니다.` };
       }
 
       const childValidation = this.validateChildren(programBlock.children ?? []);
