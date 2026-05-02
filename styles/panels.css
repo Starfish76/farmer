@@ -144,8 +144,8 @@
 .program-area.tab-panel.active {
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  height: 370px
+  height: min(460px, calc(100vh - 280px));
+  min-height: 360px;
 }
 
 .placeholder-box {
@@ -198,7 +198,8 @@
 }
 
 .program-list {
-  max-height: min(340px, calc(100vh - 320px));
+  flex: 1 1 auto;
+  max-height: none;
   min-height: 130px;
   overflow-y: auto;
   overscroll-behavior: contain;

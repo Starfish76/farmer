@@ -110,7 +110,7 @@ export class GameEngine {
     document.getElementById('btn-run').addEventListener('click', () => this.startRun());
     document.getElementById('btn-step').addEventListener('click', () => this.step());
     document.getElementById('btn-stop').addEventListener('click', () => this.stop());
-    document.getElementById('btn-reset').addEventListener('click', () => this.resetLevel());
+    document.getElementById('btn-reset').addEventListener('click', () => this.resetRobotToStart());
   }
 
   restoreSavedState() {
@@ -282,6 +282,20 @@ export class GameEngine {
     }
 
     this.applyLevel(this.levelManager.currentLevel);
+  }
+
+  resetRobotToStart() {
+    if (this.gameState.mainGameStarted) {
+      this.robot.reset({ x: 0, y: 0, direction: 'east' });
+      return;
+    }
+
+    const level = this.levelManager.currentLevel;
+    this.robot.reset({
+      x: level.robotStart.x,
+      y: level.robotStart.y,
+      direction: level.robotDirection,
+    });
   }
 
   nextLevel() {
