@@ -43,7 +43,7 @@
   display: none;
 }
 
-.mission-bar, .status-bar, .stats-bar {
+.mission-bar {
   font-size: 0.9rem;
   margin-bottom: 5px;
 }
@@ -51,28 +51,6 @@
 .highlight {
   color: #00d2ff;
   font-weight: bold;
-}
-
-.status-value {
-  color: #ffcc00;
-  font-weight: bold;
-  text-transform: uppercase;
-}
-
-.status-value[data-state="running"] {
-  color: #22c55e;
-}
-
-.status-value[data-state="paused"] {
-  color: #facc15;
-}
-
-.status-value[data-state="error"] {
-  color: #ef4444;
-}
-
-.status-value[data-state="success"] {
-  color: #34d399;
 }
 
 .mission-panel h3 {

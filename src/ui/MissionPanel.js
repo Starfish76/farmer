@@ -7,8 +7,6 @@ export class MissionPanel {
     this.hint = document.querySelector('[data-level-hint]');
     this.requiredBlocks = document.querySelector('[data-level-required-blocks]');
     this.detailRows = [...document.querySelectorAll('.mission-detail')];
-    this.statusRow = document.querySelector('.status-bar');
-    this.statsRow = document.querySelector('.stats-bar');
     this.levelControls = document.querySelector('.level-controls');
     this.previousButton = document.querySelector('[data-prev-level]');
     this.nextButton = document.querySelector('[data-next-level]');
@@ -69,8 +67,6 @@ export class MissionPanel {
       row.hidden = !isVisible;
     }
 
-    if (this.statusRow) this.statusRow.hidden = !isVisible;
-    if (this.statsRow) this.statsRow.hidden = !isVisible;
     if (this.levelControls) this.levelControls.hidden = !isVisible;
     if (this.startMainButton) this.startMainButton.hidden = isVisible;
   }
