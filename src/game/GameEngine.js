@@ -27,7 +27,6 @@ export class GameEngine {
 
     this.gameState = {
       coins: 20,
-      score: 0,
       currentLevel: 1,
       currentLevelIndex: 0,
       levelComplete: false,
@@ -144,7 +143,6 @@ export class GameEngine {
     this.gameState.levelComplete = false;
     this.gameState.harvestedWheatCount = 0;
     this.gameState.unlockedBlocks = [...level.unlockedBlocks];
-    this.gameState.score = 0;
     this.economy.setCoins(options.coinsOverride ?? level.initialCoins);
     this.blockShop.ensureFreeBlocksOwned();
     this.setState(GAME_STATE.STOPPED);
@@ -335,7 +333,6 @@ export class GameEngine {
     this.gameState.currentLevel = 'main';
     this.gameState.levelComplete = false;
     this.gameState.harvestedWheatCount = 0;
-    this.gameState.score = 0;
     this.gameState.purchasedBlocks = [];
     this.gameState.unlockedBlocks = [
       'move',

@@ -3,7 +3,6 @@ export const CROPS = {
     id: 'wheat',
     name: 'Wheat',
     rewardCoins: 5,
-    rewardScore: 5,
     growthDurationSeconds: 5,
     color: '#f2c94c',
   },

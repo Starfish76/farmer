@@ -17,9 +17,7 @@ export class Economy {
     return true;
   }
 
-  reward({ coins = 0, score = 0 }) {
+  reward({ coins = 0 }) {
     this.gameState.coins += coins;
-    this.gameState.score += score;
   }
 }
-

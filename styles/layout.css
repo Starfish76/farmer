@@ -21,18 +21,45 @@
   background: radial-gradient(circle, #1e2233 0%, #0c0d12 100%);
 }
 
-.game-resource-overlay {
+.wheat-counter-overlay,
+.coin-counter-overlay {
   position: absolute;
-  top: 16px;
-  left: 16px;
   z-index: 3;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(78px, 1fr));
-  gap: 8px;
   pointer-events: none;
 }
 
-.game-resource-overlay span {
+.wheat-counter-overlay {
+  top: 14px;
+  left: 16px;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 76px;
+  padding: 9px 10px 8px;
+}
+
+.wheat-counter-overlay img {
+  width: 48px;
+  height: 40px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.42));
+}
+
+.wheat-counter-overlay strong {
+  color: #ffffff;
+  font-size: 1.28rem;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.45),
+    0 0 10px rgba(0, 0, 0, 0.35);
+}
+
+.coin-counter-overlay {
+  top: 16px;
+  right: 16px;
+  display: grid;
+  min-width: 92px;
   border: 1px solid rgba(0, 210, 255, 0.30);
   border-radius: 8px;
   background: rgba(10, 13, 22, 0.72);
@@ -44,7 +71,7 @@
   backdrop-filter: blur(6px);
 }
 
-.game-resource-overlay strong {
+.coin-counter-overlay strong {
   display: block;
   margin-top: 2px;
   color: #facc15;

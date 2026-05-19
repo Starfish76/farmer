@@ -85,7 +85,6 @@ export class BlockExecutor {
     this.world.harvestCropAt(this.robot.gridX, this.robot.gridY);
     this.economy.reward({
       coins: cropDefinition.rewardCoins,
-      score: cropDefinition.rewardScore,
     });
     if (crop.type === 'wheat') {
       this.gameState.harvestedWheatCount += 1;

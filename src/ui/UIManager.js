@@ -3,7 +3,7 @@ export class UIManager {
     this.logContainer = document.querySelector('.log-content');
     this.statusText = document.querySelector('.status-value');
     this.coinsTexts = [...document.querySelectorAll('[data-coins]')];
-    this.scoreTexts = [...document.querySelectorAll('[data-score]')];
+    this.wheatCountTexts = [...document.querySelectorAll('[data-wheat-count]')];
     this.logs = gameState?.logs ?? [];
   }
 
@@ -40,13 +40,13 @@ export class UIManager {
     this.statusText.dataset.state = state;
   }
 
-  updateStats({ coins, score }) {
+  updateStats({ coins, harvestedWheatCount }) {
     for (const coinsText of this.coinsTexts) {
       coinsText.textContent = coins;
     }
 
-    for (const scoreText of this.scoreTexts) {
-      scoreText.textContent = score;
+    for (const wheatCountText of this.wheatCountTexts) {
+      wheatCountText.textContent = harvestedWheatCount;
     }
   }
 }

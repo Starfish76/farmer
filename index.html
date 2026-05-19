@@ -12,9 +12,13 @@
   <div class="app-container">
     <main class="game-area">
       <div id="canvas-container">
-        <div class="game-resource-overlay" aria-label="현재 자원">
-          <span>코인 <strong data-coins>20</strong></span>
-          <span>점수 <strong data-score>0</strong></span>
+        <div class="wheat-counter-overlay" aria-label="수확한 밀">
+          <img src="assets/wheat.png" alt="">
+          <strong data-wheat-count>0</strong>
+        </div>
+        <div class="coin-counter-overlay" aria-label="현재 코인">
+          <span>코인</span>
+          <strong data-coins>20</strong>
         </div>
         <canvas id="game-canvas"></canvas>
       </div>
