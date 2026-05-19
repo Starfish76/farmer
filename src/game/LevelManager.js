@@ -45,10 +45,6 @@ export class LevelManager {
       return world.countCropsByType('wheat') >= level.target.count;
     }
 
-    if (level.winConditionType === 'plant_carrot') {
-      return world.countCropsByType('carrot') >= level.target.count;
-    }
-
     if (level.winConditionType === 'harvest_all_target_crops') {
       return level.target.cropPositions.every((position) => (
         world.getCropAt(position.x, position.y) === null

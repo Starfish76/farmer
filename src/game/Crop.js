@@ -7,14 +7,6 @@ export const CROPS = {
     growthDurationSeconds: 5,
     color: '#f2c94c',
   },
-  carrot: {
-    id: 'carrot',
-    name: 'Carrot',
-    rewardCoins: 3,
-    rewardScore: 3,
-    growthDurationSeconds: 3,
-    color: '#f2994a',
-  },
 };
 
 export function createCrop(type, plantedAt) {

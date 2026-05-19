@@ -42,7 +42,7 @@ No build step, npm install, backend, database, login, external image, or externa
 ## Block System
 
 - Movement: `move()`, `turn_left()`, `turn_right()`
-- Farming: `plant("wheat")`, `plant("carrot")`, `water()`, `harvest()`
+- Farming: `plant("wheat")`, `water()`, `harvest()`
 - Utility: `wait(1)`
 - Control: `for i in range(5):`, `if crop_ready():`
 

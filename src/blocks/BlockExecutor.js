@@ -1,4 +1,4 @@
-import { CROPS, getRemainingGrowthSeconds, updateGrowthStage } from '../game/Crop.js';
+﻿import { CROPS, getRemainingGrowthSeconds, updateGrowthStage } from '../game/Crop.js';
 
 export class BlockExecutor {
   constructor({ world, robot, economy, gameState, ui }) {
@@ -15,29 +15,27 @@ export class BlockExecutor {
         return this.move(time);
       case 'turn_left':
         this.robot.turnLeft();
-        this.ui.addLog('왼쪽으로 회전했습니다.');
+        this.ui.addLog('Turned left.');
         return { status: 'done' };
       case 'turn_right':
         this.robot.turnRight();
-        this.ui.addLog('오른쪽으로 회전했습니다.');
+        this.ui.addLog('Turned right.');
         return { status: 'done' };
       case 'wait':
         return { status: 'waiting', endsAt: time + 1000 };
       case 'plant_wheat':
         return this.plantCrop('wheat', time);
-      case 'plant_carrot':
-        return this.plantCrop('carrot', time);
       case 'harvest':
         return this.harvest(time);
       case 'water':
-        this.ui.addLog('현재 칸에 물을 줬습니다.');
+        this.ui.addLog('Watered the current tile.');
         return { status: 'done' };
       case 'repeat':
         return this.repeat(command);
       case 'if':
         return this.condition(command, time);
       default:
-        this.ui.addLog(`알 수 없는 명령입니다: ${command.type}`);
+        this.ui.addLog(`Unknown command: ${command.type}`);
         return { status: 'error' };
     }
   }
@@ -46,12 +44,12 @@ export class BlockExecutor {
     const next = this.robot.getFrontPos();
 
     if (!this.world.isWalkable(next.x, next.y)) {
-      this.ui.addLog('이동할 수 없습니다.');
+      this.ui.addLog('Cannot move there.');
       return { status: 'done' };
     }
 
     this.robot.moveTo(next.x, next.y, time);
-    this.ui.addLog(`(${next.x}, ${next.y}) 위치로 이동했습니다.`);
+    this.ui.addLog(`Moved to (${next.x}, ${next.y}).`);
     return { status: 'done' };
   }
 
@@ -59,7 +57,7 @@ export class BlockExecutor {
     const result = this.world.plantCropAt(this.robot.gridX, this.robot.gridY, cropType, time);
 
     if (result.ok) {
-      this.ui.addLog(`${getCropName(cropType)}을 심었습니다.`);
+      this.ui.addLog(`Planted ${getCropName(cropType)}.`);
     } else {
       this.ui.addLog(result.message);
     }
@@ -71,7 +69,7 @@ export class BlockExecutor {
     const crop = this.world.getCropAt(this.robot.gridX, this.robot.gridY);
 
     if (!crop) {
-      this.ui.addLog('수확할 작물이 없습니다.');
+      this.ui.addLog('There is no crop to harvest.');
       return { status: 'done' };
     }
 
@@ -79,7 +77,7 @@ export class BlockExecutor {
 
     if (crop.growthStage !== 'grown') {
       const remaining = getRemainingGrowthSeconds(crop, time).toFixed(1);
-      this.ui.addLog(`아직 다 자라지 않았습니다. ${remaining}초 남았습니다.`);
+      this.ui.addLog(`The crop is not ready yet. ${remaining}s remaining.`);
       return { status: 'done' };
     }
 
@@ -93,7 +91,7 @@ export class BlockExecutor {
       this.gameState.harvestedWheatCount += 1;
     }
     this.ui.updateStats(this.gameState);
-    this.ui.addLog(`${getCropName(crop.type)} 수확 완료. +${cropDefinition.rewardCoins}코인`);
+    this.ui.addLog(`Harvested ${getCropName(crop.type)}. +${cropDefinition.rewardCoins} coins`);
 
     return { status: 'done' };
   }
@@ -112,11 +110,11 @@ export class BlockExecutor {
     const passed = this.evaluateCondition(command.conditionType, time);
 
     if (!passed) {
-      this.ui.addLog(`조건 ${getConditionName(command.conditionType)}: 거짓`);
+      this.ui.addLog(`Condition ${getConditionName(command.conditionType)}: false`);
       return { status: 'done' };
     }
 
-    this.ui.addLog(`조건 ${getConditionName(command.conditionType)}: 참`);
+    this.ui.addLog(`Condition ${getConditionName(command.conditionType)}: true`);
     return {
       status: 'enqueue',
       commands: cloneCommands(command.children ?? []),
@@ -143,12 +141,11 @@ function cloneCommands(commands) {
 }
 
 function getCropName(cropType) {
-  if (cropType === 'wheat') return '밀';
-  if (cropType === 'carrot') return '당근';
+  if (cropType === 'wheat') return 'wheat';
   return cropType;
 }
 
 function getConditionName(conditionType) {
-  if (conditionType === 'crop_ready') return '작물 준비됨';
+  if (conditionType === 'crop_ready') return 'crop ready';
   return conditionType;
 }

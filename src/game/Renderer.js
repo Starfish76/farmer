@@ -9,7 +9,31 @@ export class Renderer {
     this.ctx = canvas.getContext('2d');
     this.offsetX = 0;
     this.offsetY = 0;
+    this.droneElement = this.createDroneElement();
     this.resize();
+  }
+
+  createDroneElement() {
+    const drone = document.createElement('img');
+    drone.src = 'assets/dron.gif';
+    drone.alt = '';
+    drone.setAttribute('aria-hidden', 'true');
+    Object.assign(drone.style, {
+      position: 'absolute',
+      left: '0',
+      top: '0',
+      width: `${TILE_W * 1.25}px`,
+      height: `${TILE_W * 1.25}px`,
+      '--drone-facing': '1',
+      objectFit: 'contain',
+      pointerEvents: 'none',
+      transform: 'translate(-50%, -50%) scaleX(var(--drone-facing))',
+      transformOrigin: 'center center',
+      animation: 'drone-hover 2.4s ease-in-out infinite',
+      zIndex: '2',
+    });
+    this.canvas.parentElement.appendChild(drone);
+    return drone;
   }
 
   resize() {
@@ -115,8 +139,6 @@ export class Renderer {
       this.drawSeed(baseX, baseY, cropDefinition.color);
     } else if (crop.growthStage === 'sprout') {
       this.drawSprout(baseX, baseY);
-    } else if (crop.type === 'carrot') {
-      this.drawGrownCarrot(baseX, baseY, cropDefinition.color);
     } else {
       this.drawGrownWheat(baseX, baseY, cropDefinition.color);
     }
@@ -180,32 +202,6 @@ export class Renderer {
     }
   }
 
-  drawGrownCarrot(x, y, color) {
-    const ctx = this.ctx;
-    ctx.fillStyle = color;
-    ctx.strokeStyle = '#9a3412';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(x - 7, y - 16);
-    ctx.lineTo(x + 7, y - 16);
-    ctx.lineTo(x + 2, y + 5);
-    ctx.lineTo(x - 2, y + 5);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.strokeStyle = '#22c55e';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(x, y - 16);
-    ctx.lineTo(x - 8, y - 27);
-    ctx.moveTo(x, y - 16);
-    ctx.lineTo(x + 8, y - 27);
-    ctx.moveTo(x, y - 16);
-    ctx.lineTo(x, y - 29);
-    ctx.stroke();
-  }
-
   drawGrowthBar(x, y, progress) {
     const ctx = this.ctx;
     const width = 28;
@@ -218,6 +214,45 @@ export class Renderer {
 
   renderRobot(robot) {
     const { x: sx, y: sy } = gridToScreen(robot.animX, robot.animY, this.offsetX, this.offsetY);
+    this.positionDroneElement(robot, sx, sy);
+  }
+
+  positionDroneElement(robot, screenX, screenY) {
+    const imageSize = TILE_W * 1.25;
+    const centerX = screenX;
+    const centerY = screenY + TILE_H / 2 - 28;
+    const shouldFaceRight = robot.dir === DIRECTIONS.EAST || robot.dir === DIRECTIONS.NORTH;
+
+    this.droneElement.style.width = `${imageSize}px`;
+    this.droneElement.style.height = `${imageSize}px`;
+    this.droneElement.style.left = `${centerX}px`;
+    this.droneElement.style.top = `${centerY}px`;
+    this.droneElement.style.setProperty('--drone-facing', shouldFaceRight ? '-1' : '1');
+  }
+
+  triggerFireworks() {
+    const centerX = parseFloat(this.droneElement.style.left) || 0;
+    const centerY = parseFloat(this.droneElement.style.top) || 0;
+    const colors = ['#facc15', '#fb7185', '#38bdf8', '#86efac', '#f97316'];
+    const particleCount = 28;
+
+    for (let index = 0; index < particleCount; index += 1) {
+      const angle = (Math.PI * 2 * index) / particleCount;
+      const distance = 42 + Math.random() * 48;
+      const particle = document.createElement('span');
+      particle.className = 'drone-firework-particle';
+      particle.style.left = `${centerX}px`;
+      particle.style.top = `${centerY - 18}px`;
+      particle.style.setProperty('--firework-x', `${Math.cos(angle) * distance}px`);
+      particle.style.setProperty('--firework-y', `${Math.sin(angle) * distance}px`);
+      particle.style.setProperty('--firework-color', colors[index % colors.length]);
+      particle.style.animationDelay = `${Math.random() * 0.08}s`;
+      this.canvas.parentElement.appendChild(particle);
+      particle.addEventListener('animationend', () => particle.remove(), { once: true });
+    }
+  }
+
+  drawFallbackRobot(robot, sx, sy) {
     const rw = TILE_W * 0.6;
     const rh = TILE_H * 0.6;
     const height = 30;

@@ -57,6 +57,49 @@ canvas {
   height: 100%;
 }
 
+@keyframes drone-hover {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) translateY(0) scaleX(var(--drone-facing));
+  }
+
+  50% {
+    transform: translate(-50%, -50%) translateY(-6px) scaleX(var(--drone-facing));
+  }
+}
+
+.drone-firework-particle {
+  position: absolute;
+  z-index: 4;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--firework-color);
+  box-shadow: 0 0 14px var(--firework-color);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: drone-firework 720ms ease-out forwards;
+}
+
+@keyframes drone-firework {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.35);
+  }
+
+  72% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%)
+      translate(var(--firework-x), var(--firework-y))
+      scale(0.1);
+  }
+}
+
 .bottom-controls {
   min-height: 70px;
   background-color: rgba(10, 11, 15, 0.9);

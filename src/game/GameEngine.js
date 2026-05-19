@@ -342,7 +342,6 @@ export class GameEngine {
       'turn_left',
       'turn_right',
       'plant_wheat',
-      'plant_carrot',
       'wait',
       'harvest',
       'water',
@@ -475,6 +474,9 @@ export class GameEngine {
       this.queue.clear();
       this.activeCommand = null;
       this.setState(GAME_STATE.SUCCESS);
+      if (!this.gameState.mainGameStarted) {
+        this.renderer.triggerFireworks();
+      }
       this.ui.addLog('레벨 완료!');
       this.renderPanels();
       this.saveProgress();
