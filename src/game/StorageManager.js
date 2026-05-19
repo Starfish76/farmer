@@ -17,6 +17,9 @@ export class StorageManager {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         currentLevel: gameState.currentLevel,
         coins: gameState.coins,
+        cropInventory: gameState.cropInventory,
+        cropPrices: gameState.cropPrices,
+        nextMarketPriceUpdateAt: gameState.nextMarketPriceUpdateAt,
         purchasedBlocks: gameState.purchasedBlocks,
         highestUnlockedLevel: gameState.highestUnlockedLevel,
         completedLevels: gameState.completedLevels,

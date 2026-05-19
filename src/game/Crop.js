@@ -1,10 +1,11 @@
 export const CROPS = {
   wheat: {
     id: 'wheat',
-    name: 'Wheat',
-    rewardCoins: 5,
+    name: '밀',
+    baseSellPrice: 5,
     growthDurationSeconds: 5,
     color: '#f2c94c',
+    imageSrc: 'assets/wheat.png',
   },
 };
 

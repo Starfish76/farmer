@@ -1,10 +1,9 @@
 ﻿import { CROPS, getRemainingGrowthSeconds, updateGrowthStage } from '../game/Crop.js';
 
 export class BlockExecutor {
-  constructor({ world, robot, economy, gameState, ui }) {
+  constructor({ world, robot, gameState, ui }) {
     this.world = world;
     this.robot = robot;
-    this.economy = economy;
     this.gameState = gameState;
     this.ui = ui;
   }
@@ -81,16 +80,13 @@ export class BlockExecutor {
       return { status: 'done' };
     }
 
-    const cropDefinition = CROPS[crop.type];
     this.world.harvestCropAt(this.robot.gridX, this.robot.gridY);
-    this.economy.reward({
-      coins: cropDefinition.rewardCoins,
-    });
     if (crop.type === 'wheat') {
       this.gameState.harvestedWheatCount += 1;
     }
+    this.gameState.cropInventory[crop.type] = (this.gameState.cropInventory[crop.type] ?? 0) + 1;
     this.ui.updateStats(this.gameState);
-    this.ui.addLog(`Harvested ${getCropName(crop.type)}. +${cropDefinition.rewardCoins} coins`);
+    this.ui.addLog(`Harvested ${getCropName(crop.type)}.`);
 
     return { status: 'done' };
   }

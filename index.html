@@ -54,7 +54,7 @@
       <nav class="side-tabs" aria-label="Side panel sections">
         <button class="tab-btn active" data-tab-button="blocks" type="button">블록</button>
         <button class="tab-btn" data-tab-button="program" type="button">프로그램</button>
-        <button class="tab-btn" data-tab-button="code" type="button">코드</button>
+        <button class="tab-btn" data-tab-button="sell" type="button">판매</button>
         <button class="tab-btn" data-tab-button="log" type="button">로그</button>
       </nav>
 
@@ -76,9 +76,13 @@
         <div class="program-list" data-program-list></div>
       </div>
 
-      <div class="panel-section code-preview tab-panel" data-tab-panel="code">
-        <h3>코드 미리보기</h3>
-        <pre><code data-code-preview># 블록을 추가해서 프로그램을 만드세요</code></pre>
+      <div class="panel-section sell-panel tab-panel" data-tab-panel="sell">
+        <div class="section-title-row">
+          <h3>판매</h3>
+          <span class="market-timer" data-market-timer>--:--</span>
+        </div>
+        <p class="sell-intro">수확한 농작물을 현재 시세로 판매합니다.</p>
+        <div class="sell-crop-list" data-sell-crop-list></div>
       </div>
 
       <div class="panel-section log-area tab-panel" data-tab-panel="log">

@@ -1,13 +1,12 @@
 import { BlockExecutor } from '../blocks/BlockExecutor.js';
 import { BlockProgram } from '../blocks/BlockProgram.js';
 import { BlockShop } from '../blocks/BlockShop.js';
-import { CodeGenerator } from '../blocks/CodeGenerator.js';
 import { GAME_STATE } from '../constants.js';
 import { Economy } from './Economy.js';
 import { LevelManager } from './LevelManager.js';
-import { CodePreviewPanel } from '../ui/CodePreviewPanel.js';
 import { MissionPanel } from '../ui/MissionPanel.js';
 import { ProgramPanel } from '../ui/ProgramPanel.js';
+import { SellPanel } from '../ui/SellPanel.js';
 import { ShopPanel } from '../ui/ShopPanel.js';
 import { UIManager } from '../ui/UIManager.js';
 import { CommandQueue } from './CommandQueue.js';
@@ -16,6 +15,10 @@ import { Renderer } from './Renderer.js';
 import { Robot } from './Robot.js';
 import { StorageManager } from './StorageManager.js';
 import { World } from './World.js';
+
+const MARKET_PRICE_UPDATE_INTERVAL_MS = 5 * 60 * 1000;
+const MIN_CROP_PRICE = 1;
+const MARKET_PRICE_MAX_STEP = 3;
 
 export class GameEngine {
   constructor(canvasId) {
@@ -31,6 +34,9 @@ export class GameEngine {
       currentLevelIndex: 0,
       levelComplete: false,
       harvestedWheatCount: 0,
+      cropInventory: createDefaultCropInventory(),
+      cropPrices: createDefaultCropPrices(),
+      nextMarketPriceUpdateAt: Date.now() + MARKET_PRICE_UPDATE_INTERVAL_MS,
       highestUnlockedLevel: 1,
       completedLevels: [],
       mainGameStarted: false,
@@ -48,11 +54,9 @@ export class GameEngine {
     const savedData = this.restoreSavedState();
     this.blockShop = new BlockShop(this.gameState);
     this.blockProgram = new BlockProgram(this.gameState);
-    this.codeGenerator = new CodeGenerator();
     this.executor = new BlockExecutor({
       world: this.world,
       robot: this.robot,
-      economy: this.economy,
       gameState: this.gameState,
       ui: this.ui,
     });
@@ -60,6 +64,7 @@ export class GameEngine {
     this.activeCommand = null;
     this.state = GAME_STATE.STOPPED;
     this.lastTick = 0;
+    this.lastSellPanelRenderAt = 0;
     this.tickInterval = 250;
 
     this.shopPanel = new ShopPanel({
@@ -76,9 +81,9 @@ export class GameEngine {
       onClear: () => this.clearProgram(),
       onSelectContainer: (programBlockId) => this.selectProgramContainer(programBlockId),
     });
-    this.codePreviewPanel = new CodePreviewPanel({
-      codeGenerator: this.codeGenerator,
+    this.sellPanel = new SellPanel({
       gameState: this.gameState,
+      onSellCrop: (cropId) => this.sellCrop(cropId),
     });
     this.missionPanel = new MissionPanel({
       onPrevious: () => this.previousLevel(),
@@ -93,6 +98,7 @@ export class GameEngine {
       this.startMainGame({
         save: false,
         coinsOverride: savedData?.coins,
+        cropInventoryOverride: savedData?.cropInventory,
         purchasedBlocksOverride: savedData?.purchasedBlocks,
       });
     } else {
@@ -124,6 +130,11 @@ export class GameEngine {
     this.gameState.highestUnlockedLevel = savedData.highestUnlockedLevel ?? this.gameState.currentLevel;
     this.gameState.completedLevels = Array.isArray(savedData.completedLevels) ? [...savedData.completedLevels] : [];
     this.gameState.mainGameStarted = savedData.mainGameStarted === true;
+    this.gameState.cropInventory = normalizeCropInventory(savedData.cropInventory);
+    this.gameState.cropPrices = normalizeCropPrices(savedData.cropPrices);
+    this.gameState.nextMarketPriceUpdateAt = Number.isFinite(savedData.nextMarketPriceUpdateAt)
+      ? savedData.nextMarketPriceUpdateAt
+      : Date.now() + MARKET_PRICE_UPDATE_INTERVAL_MS;
     return savedData;
   }
 
@@ -142,6 +153,7 @@ export class GameEngine {
     this.gameState.currentLevel = level.id;
     this.gameState.levelComplete = false;
     this.gameState.harvestedWheatCount = 0;
+    this.gameState.cropInventory = createDefaultCropInventory();
     this.gameState.unlockedBlocks = [...level.unlockedBlocks];
     this.economy.setCoins(options.coinsOverride ?? level.initialCoins);
     this.blockShop.ensureFreeBlocksOwned();
@@ -169,6 +181,24 @@ export class GameEngine {
     this.ui.addLog(result.message);
     this.ui.updateStats(this.gameState);
     this.renderPanels();
+    this.saveProgress();
+  }
+
+  sellCrop(cropId) {
+    const crop = CROPS[cropId];
+    const count = this.gameState.cropInventory[cropId] ?? 0;
+
+    if (!crop || count <= 0) {
+      this.ui.addLog('판매할 농작물이 없습니다.');
+      return;
+    }
+
+    const price = this.gameState.cropPrices[cropId] ?? crop.baseSellPrice;
+    this.gameState.cropInventory[cropId] = count - 1;
+    this.gameState.coins += price;
+    this.ui.updateStats(this.gameState);
+    this.sellPanel.render();
+    this.ui.addLog(`${crop.name} 1개를 ${price}코인에 판매했습니다.`);
     this.saveProgress();
   }
 
@@ -220,7 +250,7 @@ export class GameEngine {
     const canAdvance = this.canAdvanceFromCurrentLevel();
     this.shopPanel.render();
     this.programPanel.render();
-    this.codePreviewPanel.render();
+    this.sellPanel.render();
 
     if (this.gameState.mainGameStarted) {
       this.missionPanel.hideForMainGame();
@@ -317,6 +347,9 @@ export class GameEngine {
     this.gameState.highestUnlockedLevel = 1;
     this.gameState.completedLevels = [];
     this.gameState.purchasedBlocks = [];
+    this.gameState.cropInventory = createDefaultCropInventory();
+    this.gameState.cropPrices = createDefaultCropPrices();
+    this.gameState.nextMarketPriceUpdateAt = Date.now() + MARKET_PRICE_UPDATE_INTERVAL_MS;
     this.gameState.logs = [];
     this.ui.logs = this.gameState.logs;
     this.applyLevel(this.levelManager.goToLevel(0), { save: false });
@@ -333,7 +366,10 @@ export class GameEngine {
     this.gameState.currentLevel = 'main';
     this.gameState.levelComplete = false;
     this.gameState.harvestedWheatCount = 0;
-    this.gameState.purchasedBlocks = [];
+    this.gameState.cropInventory = normalizeCropInventory(options.cropInventoryOverride);
+    this.gameState.purchasedBlocks = Array.isArray(options.purchasedBlocksOverride)
+      ? [...options.purchasedBlocksOverride]
+      : [];
     this.gameState.unlockedBlocks = [
       'move',
       'turn_left',
@@ -417,6 +453,7 @@ export class GameEngine {
     this.robot.update(time);
     this.world.updateAllCrops(time);
     this.updateActiveCommand(time);
+    this.updateMarketPrices(Date.now());
 
     if (
       this.state === GAME_STATE.RUNNING &&
@@ -431,6 +468,41 @@ export class GameEngine {
     this.checkLevelComplete();
     this.render();
     requestAnimationFrame((nextTime) => this.update(nextTime));
+  }
+
+  updateMarketPrices(now) {
+    if (now < this.gameState.nextMarketPriceUpdateAt) {
+      if (now - this.lastSellPanelRenderAt >= 1000) {
+        this.sellPanel.render(now);
+        this.lastSellPanelRenderAt = now;
+      }
+      return;
+    }
+
+    const previousWheatPrice = this.gameState.cropPrices.wheat;
+    this.randomizeCropPrices();
+    this.gameState.nextMarketPriceUpdateAt = now + MARKET_PRICE_UPDATE_INTERVAL_MS;
+    this.lastSellPanelRenderAt = now;
+    this.sellPanel.render(now);
+    this.saveProgress();
+
+    if (this.gameState.cropPrices.wheat > previousWheatPrice) {
+      this.ui.addLog(`밀 시세가 ${this.gameState.cropPrices.wheat}코인으로 올랐습니다.`);
+    } else if (this.gameState.cropPrices.wheat < previousWheatPrice) {
+      this.ui.addLog(`밀 시세가 ${this.gameState.cropPrices.wheat}코인으로 내려갔습니다.`);
+    }
+  }
+
+  randomizeCropPrices() {
+    for (const cropId of Object.keys(CROPS)) {
+      const currentPrice = this.gameState.cropPrices[cropId] ?? CROPS[cropId].baseSellPrice;
+      const direction = Math.random() < 0.5 ? -1 : 1;
+      const step = Math.floor(Math.random() * MARKET_PRICE_MAX_STEP) + 1;
+      const nextPrice = currentPrice + direction * step;
+      this.gameState.cropPrices[cropId] = nextPrice >= MIN_CROP_PRICE
+        ? nextPrice
+        : currentPrice + step;
+    }
   }
 
   updateActiveCommand(time) {
@@ -512,4 +584,36 @@ export class GameEngine {
   saveProgress() {
     this.storage.save(this.gameState);
   }
+}
+
+function createDefaultCropInventory() {
+  return Object.fromEntries(Object.keys(CROPS).map((cropId) => [cropId, 0]));
+}
+
+function createDefaultCropPrices() {
+  return Object.fromEntries(
+    Object.entries(CROPS).map(([cropId, crop]) => [cropId, crop.baseSellPrice]),
+  );
+}
+
+function normalizeCropInventory(savedInventory = {}) {
+  const inventory = createDefaultCropInventory();
+
+  for (const cropId of Object.keys(inventory)) {
+    const savedCount = savedInventory?.[cropId];
+    inventory[cropId] = Number.isFinite(savedCount) ? Math.max(0, savedCount) : 0;
+  }
+
+  return inventory;
+}
+
+function normalizeCropPrices(savedPrices = {}) {
+  const prices = createDefaultCropPrices();
+
+  for (const cropId of Object.keys(prices)) {
+    const savedPrice = savedPrices?.[cropId];
+    prices[cropId] = Number.isFinite(savedPrice) ? Math.max(MIN_CROP_PRICE, savedPrice) : prices[cropId];
+  }
+
+  return prices;
 }

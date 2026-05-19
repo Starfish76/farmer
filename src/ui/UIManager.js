@@ -40,13 +40,14 @@ export class UIManager {
     this.statusText.dataset.state = state;
   }
 
-  updateStats({ coins, harvestedWheatCount }) {
+  updateStats({ coins, cropInventory }) {
     for (const coinsText of this.coinsTexts) {
       coinsText.textContent = coins;
     }
 
+    const wheatCount = cropInventory?.wheat ?? 0;
     for (const wheatCountText of this.wheatCountTexts) {
-      wheatCountText.textContent = harvestedWheatCount;
+      wheatCountText.textContent = wheatCount;
     }
   }
 }

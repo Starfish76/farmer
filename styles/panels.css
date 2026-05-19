@@ -345,6 +345,60 @@
   text-transform: uppercase;
 }
 
+.sell-intro {
+  color: #aab2d0;
+  font-size: 0.84rem;
+  line-height: 1.35;
+  margin-bottom: 10px;
+}
+
+.market-timer {
+  border: 1px solid rgba(250, 204, 21, 0.34);
+  border-radius: 6px;
+  background: rgba(250, 204, 21, 0.10);
+  color: #fde68a;
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1;
+  padding: 6px 8px;
+}
+
+.sell-crop-list {
+  display: grid;
+  gap: 8px;
+}
+
+.sell-crop-card {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #3d435c;
+  border-left: 4px solid #22c55e;
+  border-radius: 6px;
+  background-color: rgba(0, 0, 0, 0.24);
+  padding: 10px;
+}
+
+.sell-crop-card img {
+  width: 40px;
+  height: 34px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.35));
+}
+
+.sell-crop-card h4 {
+  color: #ffffff;
+  font-size: 0.92rem;
+  margin-bottom: 3px;
+}
+
+.sell-crop-card p {
+  color: #aab2d0;
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
 .compact-owned-list {
   display: flex;
   flex-flow: row wrap;
@@ -430,16 +484,6 @@
 .icon-btn:disabled {
   cursor: default;
   opacity: 0.35;
-}
-
-.code-preview pre {
-  background-color: #0b0c10;
-  padding: 10px;
-  border-radius: 4px;
-  font-family: "Cascadia Code", Consolas, "Courier New", monospace;
-  font-size: 0.85rem;
-  color: #56b6c2;
-  overflow-x: auto;
 }
 
 .log-content {
