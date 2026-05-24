@@ -205,44 +205,16 @@ export class GameEngine {
       return { ok: false, message: '땅 추가는 본 게임에서 사용할 수 있습니다.' };
     }
 
-    if (this.world.width >= MAX_MAIN_WORLD_SIZE && this.world.height >= MAX_MAIN_WORLD_SIZE) {
-      return { ok: false, message: `땅은 최대 ${MAX_MAIN_WORLD_SIZE}x${MAX_MAIN_WORLD_SIZE}까지 확장할 수 있습니다.` };
+    {
+      const result = this.world.addSoilInSequence(MAX_MAIN_WORLD_SIZE);
+
+      if (!result.ok) {
+        return { ok: false, message: result.message };
+      }
+
+      return { ok: true, message: `땅을 (${result.x}, ${result.y})에 추가했습니다.` };
     }
 
-    const next = this.robot.getFrontPos();
-
-    if (
-      (next.x < 0 || next.x >= this.world.width) &&
-      this.world.width >= MAX_MAIN_WORLD_SIZE
-    ) {
-      return { ok: false, message: `가로 크기는 최대 ${MAX_MAIN_WORLD_SIZE}칸까지 확장할 수 있습니다.` };
-    }
-
-    if (
-      (next.y < 0 || next.y >= this.world.height) &&
-      this.world.height >= MAX_MAIN_WORLD_SIZE
-    ) {
-      return { ok: false, message: `세로 크기는 최대 ${MAX_MAIN_WORLD_SIZE}칸까지 확장할 수 있습니다.` };
-    }
-
-    const result = this.world.addSoilAtEdge(next.x, next.y);
-
-    if (!result.ok) {
-      return {
-        ok: false,
-        message: `${result.message} 드론을 가장자리에서 바깥쪽으로 바라보게 해주세요.`,
-      };
-    }
-
-    if (result.shiftX || result.shiftY) {
-      this.robot.reset({
-        x: this.robot.gridX + result.shiftX,
-        y: this.robot.gridY + result.shiftY,
-        direction: this.robot.dir,
-      });
-    }
-
-    return { ok: true, message: '현재 칸 옆에 땅 1칸을 추가했습니다.' };
   }
 
   addDrone() {
@@ -732,14 +704,24 @@ function normalizeMainGamePurchasedBlocks(savedBlocks = []) {
 }
 
 function normalizeMainWorldGrid(savedGrid) {
-  if (!Array.isArray(savedGrid) || savedGrid.length === 0) {
-    return [['soil']];
+  const grid = Array.from({ length: MAX_MAIN_WORLD_SIZE }, () => (
+    Array.from({ length: MAX_MAIN_WORLD_SIZE }, () => 'empty')
+  ));
+  grid[0][0] = 'soil';
+
+  if (!Array.isArray(savedGrid)) {
+    return grid;
   }
 
-  const width = savedGrid[0]?.length ?? 0;
-  if (width === 0 || savedGrid.some((row) => !Array.isArray(row) || row.length !== width)) {
-    return [['soil']];
+  for (let y = 0; y < Math.min(savedGrid.length, MAX_MAIN_WORLD_SIZE); y += 1) {
+    const row = savedGrid[y];
+    if (!Array.isArray(row)) continue;
+
+    for (let x = 0; x < Math.min(row.length, MAX_MAIN_WORLD_SIZE); x += 1) {
+      grid[y][x] = row[x] === 'soil' ? 'soil' : 'empty';
+    }
   }
 
-  return savedGrid.map((row) => row.map((tileType) => (tileType === 'soil' ? 'soil' : 'soil')));
+  grid[0][0] = 'soil';
+  return grid;
 }

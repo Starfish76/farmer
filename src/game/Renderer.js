@@ -55,6 +55,7 @@ export class Renderer {
     for (let y = 0; y < world.height; y += 1) {
       for (let x = 0; x < world.width; x += 1) {
         const tile = world.grid[y][x];
+        if (tile.type === 'empty') continue;
         this.drawTile(tile);
       }
     }
@@ -66,7 +67,7 @@ export class Renderer {
     for (let y = 0; y < world.height; y += 1) {
       for (let x = 0; x < world.width; x += 1) {
         const tile = world.grid[y][x];
-        if (tile.crop) {
+        if (tile.type !== 'empty' && tile.crop) {
           const { x: sx, y: sy } = gridToScreen(tile.x, tile.y, this.offsetX, this.offsetY);
           this.drawCrop(tile.crop, sx, sy);
         }
@@ -233,7 +234,10 @@ export class Renderer {
     for (let y = 0; y < world.height; y += 1) {
       for (let x = 0; x < world.width; x += 1) {
         if (x !== robot.gridX || y !== robot.gridY) {
-          tiles.push({ x, y });
+          const tile = world.getTile(x, y);
+          if (tile?.type === 'soil') {
+            tiles.push({ x, y });
+          }
         }
       }
     }

@@ -115,6 +115,21 @@ export class World {
     return this.grid[y][x];
   }
 
+  addSoilInSequence(maxSize) {
+    for (let y = 0; y < maxSize; y += 1) {
+      for (let x = 0; x < maxSize; x += 1) {
+        const tile = this.getTile(x, y);
+
+        if (tile && tile.type !== 'soil') {
+          tile.type = 'soil';
+          return { ok: true, x, y };
+        }
+      }
+    }
+
+    return { ok: false, message: `땅은 최대 ${maxSize}x${maxSize}까지 확장할 수 있습니다.` };
+  }
+
   getCropAt(x, y) {
     return this.getTile(x, y)?.crop ?? null;
   }
