@@ -18,8 +18,11 @@ import { World } from './World.js';
 
 const MARKET_PRICE_UPDATE_INTERVAL_MS = 5 * 60 * 1000;
 const MIN_CROP_PRICE = 1;
+const MAX_CROP_PRICE = 15;
 const MARKET_PRICE_MAX_STEP = 3;
 const MAX_MAIN_WORLD_SIZE = 6;
+const MAIN_GAME_INITIAL_COINS = 0;
+const MAIN_GAME_STARTER_BLOCK_IDS = ['plant_wheat', 'wait', 'harvest'];
 
 export class GameEngine {
   constructor(canvasId) {
@@ -436,9 +439,7 @@ export class GameEngine {
     this.gameState.levelComplete = false;
     this.gameState.harvestedWheatCount = 0;
     this.gameState.cropInventory = normalizeCropInventory(options.cropInventoryOverride);
-    this.gameState.purchasedBlocks = Array.isArray(options.purchasedBlocksOverride)
-      ? [...options.purchasedBlocksOverride]
-      : [];
+    this.gameState.purchasedBlocks = normalizeMainGamePurchasedBlocks(options.purchasedBlocksOverride);
     this.gameState.upgradePurchases = normalizeUpgradePurchases(options.upgradePurchasesOverride);
     this.gameState.droneCount = normalizeDroneCount(options.droneCountOverride);
     this.gameState.unlockedBlocks = [
@@ -448,13 +449,12 @@ export class GameEngine {
       'plant_wheat',
       'wait',
       'harvest',
-      'water',
       'repeat_5',
       'if_crop_ready',
       'add_land',
       'add_drone',
     ];
-    this.economy.setCoins(options.coinsOverride ?? 30);
+    this.economy.setCoins(options.coinsOverride ?? MAIN_GAME_INITIAL_COINS);
     this.blockShop.ensureFreeBlocksOwned();
     this.setState(GAME_STATE.STOPPED);
     this.ui.updateStats(this.gameState);
@@ -569,12 +569,14 @@ export class GameEngine {
   randomizeCropPrices() {
     for (const cropId of Object.keys(CROPS)) {
       const currentPrice = this.gameState.cropPrices[cropId] ?? CROPS[cropId].baseSellPrice;
-      const direction = Math.random() < 0.5 ? -1 : 1;
+      const riseChance = getCropPriceRiseChance(currentPrice);
+      const direction = Math.random() < riseChance ? 1 : -1;
       const step = Math.floor(Math.random() * MARKET_PRICE_MAX_STEP) + 1;
       const nextPrice = currentPrice + direction * step;
-      this.gameState.cropPrices[cropId] = nextPrice >= MIN_CROP_PRICE
-        ? nextPrice
-        : currentPrice + step;
+      this.gameState.cropPrices[cropId] = Math.max(
+        MIN_CROP_PRICE,
+        Math.min(MAX_CROP_PRICE, nextPrice),
+      );
     }
   }
 
@@ -690,10 +692,19 @@ function normalizeCropPrices(savedPrices = {}) {
 
   for (const cropId of Object.keys(prices)) {
     const savedPrice = savedPrices?.[cropId];
-    prices[cropId] = Number.isFinite(savedPrice) ? Math.max(MIN_CROP_PRICE, savedPrice) : prices[cropId];
+    prices[cropId] = Number.isFinite(savedPrice)
+      ? Math.max(MIN_CROP_PRICE, Math.min(MAX_CROP_PRICE, savedPrice))
+      : prices[cropId];
   }
 
   return prices;
+}
+
+function getCropPriceRiseChance(currentPrice) {
+  if (currentPrice >= MAX_CROP_PRICE - 1) return 0.12;
+  if (currentPrice >= MAX_CROP_PRICE - 3) return 0.25;
+  if (currentPrice >= MAX_CROP_PRICE - 5) return 0.38;
+  return 0.5;
 }
 
 function normalizeUpgradePurchases(savedPurchases = {}) {
@@ -706,6 +717,18 @@ function normalizeUpgradePurchases(savedPurchases = {}) {
 
 function normalizeDroneCount(savedCount = 1) {
   return Number.isFinite(savedCount) ? Math.max(1, Math.floor(savedCount)) : 1;
+}
+
+function normalizeMainGamePurchasedBlocks(savedBlocks = []) {
+  const purchasedBlocks = Array.isArray(savedBlocks) ? [...savedBlocks] : [];
+
+  for (const blockId of MAIN_GAME_STARTER_BLOCK_IDS) {
+    if (!purchasedBlocks.includes(blockId)) {
+      purchasedBlocks.push(blockId);
+    }
+  }
+
+  return purchasedBlocks;
 }
 
 function normalizeMainWorldGrid(savedGrid) {

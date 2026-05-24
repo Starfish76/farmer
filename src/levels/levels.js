@@ -115,7 +115,7 @@ export const LEVELS = [
       { x: 3, y: 0, type: 'wheat', stage: 'grown' },
       { x: 4, y: 0, type: 'wheat', stage: 'grown' },
     ],
-    unlockedBlocks: ['move', 'turn_left', 'turn_right', 'water', 'harvest', 'repeat_5', 'if_crop_ready'],
+    unlockedBlocks: ['move', 'turn_left', 'turn_right', 'harvest', 'repeat_5', 'if_crop_ready'],
     winConditionType: 'harvest_all_target_crops',
     hint: 'if crop_ready()로 수확할지 확인한 뒤 다음 타일로 이동하세요.',
     requiredBlocks: ['for i in range(5):', 'if crop_ready():', 'harvest()', 'move()'],

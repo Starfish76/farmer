@@ -26,9 +26,6 @@ export class BlockExecutor {
         return this.plantCrop('wheat', time);
       case 'harvest':
         return this.harvest(time);
-      case 'water':
-        this.ui.addLog('Watered the current tile.');
-        return { status: 'done' };
       case 'repeat':
         return this.repeat(command);
       case 'if':
