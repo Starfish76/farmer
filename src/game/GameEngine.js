@@ -19,6 +19,7 @@ import { World } from './World.js';
 const MARKET_PRICE_UPDATE_INTERVAL_MS = 5 * 60 * 1000;
 const MIN_CROP_PRICE = 1;
 const MARKET_PRICE_MAX_STEP = 3;
+const MAX_MAIN_WORLD_SIZE = 6;
 
 export class GameEngine {
   constructor(canvasId) {
@@ -45,6 +46,8 @@ export class GameEngine {
       programBlocks: [],
       selectedContainerId: null,
       unlockedBlocks: [],
+      upgradePurchases: {},
+      droneCount: 1,
     };
 
     this.ui = new UIManager(this.gameState);
@@ -52,7 +55,10 @@ export class GameEngine {
     this.levelManager = new LevelManager(this.gameState);
     this.storage = new StorageManager();
     const savedData = this.restoreSavedState();
-    this.blockShop = new BlockShop(this.gameState);
+    this.blockShop = new BlockShop(this.gameState, {
+      add_land: () => this.addLand(),
+      add_drone: () => this.addDrone(),
+    });
     this.blockProgram = new BlockProgram(this.gameState);
     this.executor = new BlockExecutor({
       world: this.world,
@@ -100,6 +106,9 @@ export class GameEngine {
         coinsOverride: savedData?.coins,
         cropInventoryOverride: savedData?.cropInventory,
         purchasedBlocksOverride: savedData?.purchasedBlocks,
+        upgradePurchasesOverride: savedData?.upgradePurchases,
+        droneCountOverride: savedData?.droneCount,
+        worldGridOverride: savedData?.mainWorldGrid,
       });
     } else {
       this.applyLevel(this.levelManager.currentLevel, {
@@ -135,6 +144,8 @@ export class GameEngine {
     this.gameState.nextMarketPriceUpdateAt = Number.isFinite(savedData.nextMarketPriceUpdateAt)
       ? savedData.nextMarketPriceUpdateAt
       : Date.now() + MARKET_PRICE_UPDATE_INTERVAL_MS;
+    this.gameState.upgradePurchases = normalizeUpgradePurchases(savedData.upgradePurchases);
+    this.gameState.droneCount = normalizeDroneCount(savedData.droneCount);
     return savedData;
   }
 
@@ -155,6 +166,8 @@ export class GameEngine {
     this.gameState.harvestedWheatCount = 0;
     this.gameState.cropInventory = createDefaultCropInventory();
     this.gameState.unlockedBlocks = [...level.unlockedBlocks];
+    this.gameState.upgradePurchases = {};
+    this.gameState.droneCount = 1;
     this.economy.setCoins(options.coinsOverride ?? level.initialCoins);
     this.blockShop.ensureFreeBlocksOwned();
     this.setState(GAME_STATE.STOPPED);
@@ -182,6 +195,60 @@ export class GameEngine {
     this.ui.updateStats(this.gameState);
     this.renderPanels();
     this.saveProgress();
+  }
+
+  addLand() {
+    if (!this.gameState.mainGameStarted) {
+      return { ok: false, message: '땅 추가는 본 게임에서 사용할 수 있습니다.' };
+    }
+
+    if (this.world.width >= MAX_MAIN_WORLD_SIZE && this.world.height >= MAX_MAIN_WORLD_SIZE) {
+      return { ok: false, message: `땅은 최대 ${MAX_MAIN_WORLD_SIZE}x${MAX_MAIN_WORLD_SIZE}까지 확장할 수 있습니다.` };
+    }
+
+    const next = this.robot.getFrontPos();
+
+    if (
+      (next.x < 0 || next.x >= this.world.width) &&
+      this.world.width >= MAX_MAIN_WORLD_SIZE
+    ) {
+      return { ok: false, message: `가로 크기는 최대 ${MAX_MAIN_WORLD_SIZE}칸까지 확장할 수 있습니다.` };
+    }
+
+    if (
+      (next.y < 0 || next.y >= this.world.height) &&
+      this.world.height >= MAX_MAIN_WORLD_SIZE
+    ) {
+      return { ok: false, message: `세로 크기는 최대 ${MAX_MAIN_WORLD_SIZE}칸까지 확장할 수 있습니다.` };
+    }
+
+    const result = this.world.addSoilAtEdge(next.x, next.y);
+
+    if (!result.ok) {
+      return {
+        ok: false,
+        message: `${result.message} 드론을 가장자리에서 바깥쪽으로 바라보게 해주세요.`,
+      };
+    }
+
+    if (result.shiftX || result.shiftY) {
+      this.robot.reset({
+        x: this.robot.gridX + result.shiftX,
+        y: this.robot.gridY + result.shiftY,
+        direction: this.robot.dir,
+      });
+    }
+
+    return { ok: true, message: '현재 칸 옆에 땅 1칸을 추가했습니다.' };
+  }
+
+  addDrone() {
+    if (!this.gameState.mainGameStarted) {
+      return { ok: false, message: '드론 추가는 본 게임에서 사용할 수 있습니다.' };
+    }
+
+    this.gameState.droneCount = normalizeDroneCount(this.gameState.droneCount) + 1;
+    return { ok: true, message: '드론을 추가로 생성했습니다.' };
   }
 
   sellCrop(cropId) {
@@ -347,6 +414,8 @@ export class GameEngine {
     this.gameState.highestUnlockedLevel = 1;
     this.gameState.completedLevels = [];
     this.gameState.purchasedBlocks = [];
+    this.gameState.upgradePurchases = {};
+    this.gameState.droneCount = 1;
     this.gameState.cropInventory = createDefaultCropInventory();
     this.gameState.cropPrices = createDefaultCropPrices();
     this.gameState.nextMarketPriceUpdateAt = Date.now() + MARKET_PRICE_UPDATE_INTERVAL_MS;
@@ -357,7 +426,7 @@ export class GameEngine {
   }
 
   startMainGame(options = {}) {
-    this.world.loadGrid([['soil']]);
+    this.world.loadGrid(normalizeMainWorldGrid(options.worldGridOverride));
     this.robot.reset({ x: 0, y: 0, direction: 'east' });
     this.queue.clear();
     this.activeCommand = null;
@@ -370,6 +439,8 @@ export class GameEngine {
     this.gameState.purchasedBlocks = Array.isArray(options.purchasedBlocksOverride)
       ? [...options.purchasedBlocksOverride]
       : [];
+    this.gameState.upgradePurchases = normalizeUpgradePurchases(options.upgradePurchasesOverride);
+    this.gameState.droneCount = normalizeDroneCount(options.droneCountOverride);
     this.gameState.unlockedBlocks = [
       'move',
       'turn_left',
@@ -380,6 +451,8 @@ export class GameEngine {
       'water',
       'repeat_5',
       'if_crop_ready',
+      'add_land',
+      'add_drone',
     ];
     this.economy.setCoins(options.coinsOverride ?? 30);
     this.blockShop.ensureFreeBlocksOwned();
@@ -579,9 +652,14 @@ export class GameEngine {
       this.gameState.mainGameStarted ? null : this.levelManager.currentLevel,
     );
     this.renderer.renderRobot(this.robot);
+    this.renderer.renderExtraDrones(this.world, this.robot, this.gameState.droneCount);
   }
 
   saveProgress() {
+    if (this.gameState.mainGameStarted) {
+      this.gameState.mainWorldGrid = this.world.serializeGrid();
+    }
+
     this.storage.save(this.gameState);
   }
 }
@@ -616,4 +694,29 @@ function normalizeCropPrices(savedPrices = {}) {
   }
 
   return prices;
+}
+
+function normalizeUpgradePurchases(savedPurchases = {}) {
+  return Object.fromEntries(
+    Object.entries(savedPurchases ?? {})
+      .filter(([, count]) => Number.isFinite(count) && count > 0)
+      .map(([blockId, count]) => [blockId, Math.floor(count)]),
+  );
+}
+
+function normalizeDroneCount(savedCount = 1) {
+  return Number.isFinite(savedCount) ? Math.max(1, Math.floor(savedCount)) : 1;
+}
+
+function normalizeMainWorldGrid(savedGrid) {
+  if (!Array.isArray(savedGrid) || savedGrid.length === 0) {
+    return [['soil']];
+  }
+
+  const width = savedGrid[0]?.length ?? 0;
+  if (width === 0 || savedGrid.some((row) => !Array.isArray(row) || row.length !== width)) {
+    return [['soil']];
+  }
+
+  return savedGrid.map((row) => row.map((tileType) => (tileType === 'soil' ? 'soil' : 'soil')));
 }

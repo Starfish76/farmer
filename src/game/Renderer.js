@@ -10,6 +10,7 @@ export class Renderer {
     this.offsetX = 0;
     this.offsetY = 0;
     this.droneElement = this.createDroneElement();
+    this.extraDroneElements = [];
     this.resize();
   }
 
@@ -215,6 +216,40 @@ export class Renderer {
   renderRobot(robot) {
     const { x: sx, y: sy } = gridToScreen(robot.animX, robot.animY, this.offsetX, this.offsetY);
     this.positionDroneElement(robot, sx, sy);
+  }
+
+  renderExtraDrones(world, robot, droneCount = 1) {
+    const extraCount = Math.max(0, droneCount - 1);
+
+    while (this.extraDroneElements.length < extraCount) {
+      this.extraDroneElements.push(this.createDroneElement());
+    }
+
+    while (this.extraDroneElements.length > extraCount) {
+      this.extraDroneElements.pop().remove();
+    }
+
+    const tiles = [];
+    for (let y = 0; y < world.height; y += 1) {
+      for (let x = 0; x < world.width; x += 1) {
+        if (x !== robot.gridX || y !== robot.gridY) {
+          tiles.push({ x, y });
+        }
+      }
+    }
+
+    for (let index = 0; index < this.extraDroneElements.length; index += 1) {
+      const element = this.extraDroneElements[index];
+      const tile = tiles[index % Math.max(1, tiles.length)] ?? { x: robot.gridX, y: robot.gridY };
+      const { x: sx, y: sy } = gridToScreen(tile.x, tile.y, this.offsetX, this.offsetY);
+      const offset = tiles.length > 0 ? 0 : (index + 1) * 12;
+      element.style.left = `${sx + offset}px`;
+      element.style.top = `${sy + TILE_H / 2 - 28 - offset}px`;
+      element.style.width = `${TILE_W * 1.1}px`;
+      element.style.height = `${TILE_W * 1.1}px`;
+      element.style.opacity = '0.82';
+      element.style.zIndex = '1';
+    }
   }
 
   positionDroneElement(robot, screenX, screenY) {

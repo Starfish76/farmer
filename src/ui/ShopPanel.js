@@ -62,6 +62,7 @@ export class ShopPanel {
 
   createShopCard(block) {
     const isOwned = this.shop.isPurchased(block.id);
+    const cost = this.shop.getCost(block.id);
     const card = document.createElement('article');
     card.className = 'block-card shop-card';
     card.dataset.category = block.category;
@@ -72,7 +73,7 @@ export class ShopPanel {
     const description = document.createElement('p');
     description.textContent = block.description;
     const meta = document.createElement('span');
-    meta.textContent = `${getShopGroupLabel(block)} / ${block.cost}코인`;
+    meta.textContent = `${getShopGroupLabel(block)} / ${cost}코인`;
     content.append(title, description, meta);
 
     const button = document.createElement('button');
@@ -115,5 +116,5 @@ function getShopGroupLabel(block) {
   if (group === 'Movement') return '이동';
   if (group === 'Loop') return '반복';
   if (group === 'Condition') return '조건';
-  return '작업';
+  return block.repeatable ? '확장' : '작업';
 }

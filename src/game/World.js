@@ -21,10 +21,92 @@ export class World {
       const row = [];
 
       for (let x = 0; x < this.width; x += 1) {
-        row.push(new Tile(x, y, 'soil'));
+        row.push(new Tile(x, y, grid[y]?.[x] ?? 'soil'));
       }
 
       this.grid.push(row);
+    }
+  }
+
+  serializeGrid() {
+    return this.grid.map((row) => row.map((tile) => tile.type));
+  }
+
+  addSoilAtEdge(x, y) {
+    if (this.isInside(x, y)) {
+      return { ok: false, message: '이미 땅이 있는 칸입니다.' };
+    }
+
+    if (x === this.width && y >= 0 && y < this.height) {
+      this.appendColumn();
+      return { ok: true, shiftX: 0, shiftY: 0 };
+    }
+
+    if (x === -1 && y >= 0 && y < this.height) {
+      this.prependColumn();
+      return { ok: true, shiftX: 1, shiftY: 0 };
+    }
+
+    if (y === this.height && x >= 0 && x < this.width) {
+      this.appendRow();
+      return { ok: true, shiftX: 0, shiftY: 0 };
+    }
+
+    if (y === -1 && x >= 0 && x < this.width) {
+      this.prependRow();
+      return { ok: true, shiftX: 0, shiftY: 1 };
+    }
+
+    return { ok: false, message: '현재 땅과 붙어 있는 바깥 칸에만 땅을 추가할 수 있습니다.' };
+  }
+
+  appendColumn() {
+    for (let y = 0; y < this.height; y += 1) {
+      this.grid[y].push(new Tile(this.width, y, 'soil'));
+    }
+
+    this.width += 1;
+  }
+
+  prependColumn() {
+    this.width += 1;
+
+    for (let y = 0; y < this.height; y += 1) {
+      this.grid[y].unshift(new Tile(0, y, 'soil'));
+    }
+
+    this.reindexTiles();
+  }
+
+  appendRow() {
+    const row = [];
+
+    for (let x = 0; x < this.width; x += 1) {
+      row.push(new Tile(x, this.height, 'soil'));
+    }
+
+    this.grid.push(row);
+    this.height += 1;
+  }
+
+  prependRow() {
+    const row = [];
+    this.height += 1;
+
+    for (let x = 0; x < this.width; x += 1) {
+      row.push(new Tile(x, 0, 'soil'));
+    }
+
+    this.grid.unshift(row);
+    this.reindexTiles();
+  }
+
+  reindexTiles() {
+    for (let y = 0; y < this.height; y += 1) {
+      for (let x = 0; x < this.width; x += 1) {
+        this.grid[y][x].x = x;
+        this.grid[y][x].y = y;
+      }
     }
   }
 

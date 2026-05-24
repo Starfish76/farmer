@@ -84,6 +84,28 @@ export const BLOCK_DEFINITIONS = [
     hasChildren: true,
     conditionType: 'crop_ready',
   },
+  {
+    id: 'add_land',
+    name: '땅 추가',
+    category: 'Upgrade',
+    cost: 50,
+    costGrowth: 1.45,
+    repeatable: true,
+    description: '현재 칸 옆에 땅을 1칸 추가합니다.',
+    codePreview: 'add_land()',
+    shopEffect: 'add_land',
+  },
+  {
+    id: 'add_drone',
+    name: '드론 추가',
+    category: 'Upgrade',
+    cost: 100,
+    costGrowth: 1.55,
+    repeatable: true,
+    description: '드론을 추가로 생성합니다.',
+    codePreview: 'add_drone()',
+    shopEffect: 'add_drone',
+  },
 ];
 
 export const FREE_BLOCK_IDS = ['move', 'turn_left', 'turn_right'];
