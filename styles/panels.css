@@ -556,6 +556,17 @@
   text-transform: uppercase;
 }
 
+.shop-wallet {
+  margin: 6px 0 0;
+  color: #cbd5e1;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.shop-wallet strong {
+  color: #facc15;
+}
+
 .shop-close-btn {
   border: none;
   border-radius: 8px;

@@ -249,9 +249,10 @@ export class Renderer {
       const offset = tiles.length > 0 ? 0 : (index + 1) * 12;
       element.style.left = `${sx + offset}px`;
       element.style.top = `${sy + TILE_H / 2 - 28 - offset}px`;
-      element.style.width = `${TILE_W * 1.1}px`;
-      element.style.height = `${TILE_W * 1.1}px`;
-      element.style.opacity = '0.82';
+      element.style.width = `${TILE_W * 1.25}px`;
+      element.style.height = `${TILE_W * 1.25}px`;
+      element.style.opacity = '1';
+      element.style.setProperty('--drone-facing', '-1');
       element.style.zIndex = '1';
     }
   }

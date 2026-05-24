@@ -18,9 +18,10 @@ import { World } from './World.js';
 
 const MARKET_PRICE_UPDATE_INTERVAL_MS = 5 * 60 * 1000;
 const MIN_CROP_PRICE = 1;
-const MAX_CROP_PRICE = 15;
+const MAX_CROP_PRICE = 8;
 const MARKET_PRICE_MAX_STEP = 3;
-const MAX_MAIN_WORLD_SIZE = 6;
+const MAX_MAIN_WORLD_SIZE = 8;
+const MAX_DRONE_COUNT = 8;
 const MAIN_GAME_INITIAL_COINS = 0;
 const MAIN_GAME_STARTER_BLOCK_IDS = ['plant_wheat', 'wait', 'harvest'];
 
@@ -127,7 +128,7 @@ export class GameEngine {
     document.getElementById('btn-run').addEventListener('click', () => this.startRun());
     document.getElementById('btn-step').addEventListener('click', () => this.step());
     document.getElementById('btn-stop').addEventListener('click', () => this.stop());
-    document.getElementById('btn-reset').addEventListener('click', () => this.resetRobotToStart());
+    document.getElementById('btn-reset')?.addEventListener('click', () => this.resetRobotToStart());
   }
 
   restoreSavedState() {
@@ -220,6 +221,10 @@ export class GameEngine {
   addDrone() {
     if (!this.gameState.mainGameStarted) {
       return { ok: false, message: '드론 추가는 본 게임에서 사용할 수 있습니다.' };
+    }
+
+    if (normalizeDroneCount(this.gameState.droneCount) >= MAX_DRONE_COUNT) {
+      return { ok: false, message: `드론은 최대 ${MAX_DRONE_COUNT}개까지 생성할 수 있습니다.` };
     }
 
     this.gameState.droneCount = normalizeDroneCount(this.gameState.droneCount) + 1;
