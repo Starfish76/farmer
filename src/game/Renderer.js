@@ -215,15 +215,24 @@ export class Renderer {
     ctx.fillRect(x - width / 2, y, width * Math.max(0, Math.min(1, progress)), height);
   }
 
-  renderRobot(robot) {
+  renderRobot(robot, selected = true) {
     const { x: sx, y: sy } = gridToScreen(robot.animX, robot.animY, this.offsetX, this.offsetY);
     this.droneElement.dataset.droneIndex = '0';
     this.droneElement.style.pointerEvents = 'auto';
     this.droneElement.style.cursor = 'grab';
+    this.droneElement.style.filter = selected ? 'drop-shadow(0 0 12px #facc15)' : '';
     this.positionDroneElement(robot, sx, sy);
   }
 
-  renderExtraDrones(world, robot, droneCount = 1, extraDronePositions = [], draggingDroneIndex = null) {
+  renderExtraDrones(
+    world,
+    robot,
+    droneCount = 1,
+    extraDronePositions = [],
+    draggingDroneIndex = null,
+    extraRobots = [],
+    selectedDroneIndex = 0,
+  ) {
     const extraCount = Math.max(0, droneCount - 1);
 
     while (this.extraDroneElements.length < extraCount) {
@@ -248,8 +257,11 @@ export class Renderer {
 
     for (let index = 0; index < this.extraDroneElements.length; index += 1) {
       const element = this.extraDroneElements[index];
+      const extraRobot = extraRobots[index];
       const savedPosition = extraDronePositions[index];
-      const tile = savedPosition ?? tiles[index % Math.max(1, tiles.length)] ?? { x: robot.gridX, y: robot.gridY };
+      const tile = extraRobot
+        ? { x: extraRobot.animX, y: extraRobot.animY }
+        : savedPosition ?? tiles[index % Math.max(1, tiles.length)] ?? { x: robot.gridX, y: robot.gridY };
       const { x: sx, y: sy } = gridToScreen(tile.x, tile.y, this.offsetX, this.offsetY);
       const offset = tiles.length > 0 ? 0 : (index + 1) * 12;
       element.dataset.droneIndex = `${index + 1}`;
@@ -263,7 +275,8 @@ export class Renderer {
       element.style.height = `${TILE_W * 1.25}px`;
       element.style.opacity = '1';
       element.style.setProperty('--drone-facing', '-1');
-      element.style.zIndex = '1';
+      element.style.zIndex = selectedDroneIndex === index + 1 ? '3' : '1';
+      element.style.filter = selectedDroneIndex === index + 1 ? 'drop-shadow(0 0 12px #facc15)' : '';
     }
   }
 

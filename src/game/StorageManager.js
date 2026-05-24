@@ -21,6 +21,8 @@ export class StorageManager {
         cropPrices: gameState.cropPrices,
         nextMarketPriceUpdateAt: gameState.nextMarketPriceUpdateAt,
         purchasedBlocks: gameState.purchasedBlocks,
+        dronePrograms: gameState.dronePrograms,
+        selectedDroneIndex: gameState.selectedDroneIndex,
         upgradePurchases: gameState.upgradePurchases,
         droneCount: gameState.droneCount,
         extraDronePositions: gameState.extraDronePositions,

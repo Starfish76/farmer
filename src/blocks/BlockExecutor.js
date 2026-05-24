@@ -6,6 +6,7 @@ export class BlockExecutor {
     this.robot = robot;
     this.gameState = gameState;
     this.ui = ui;
+    this.canMoveTo = null;
   }
 
   execute(command, time) {
@@ -41,6 +42,11 @@ export class BlockExecutor {
 
     if (!this.world.isWalkable(next.x, next.y)) {
       this.ui.addLog('Cannot move there.');
+      return { status: 'done' };
+    }
+
+    if (this.canMoveTo && !this.canMoveTo(next.x, next.y, this.robot)) {
+      this.ui.addLog('Another drone is already there.');
       return { status: 'done' };
     }
 

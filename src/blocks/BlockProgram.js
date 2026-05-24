@@ -73,17 +73,27 @@ export class BlockProgram {
   }
 
   clear() {
-    this.gameState.programBlocks.length = 0;
+    this.getProgramBlocks().length = 0;
     this.selectMainProgram();
   }
 
   toCommands(maxCommands = MAX_COMMANDS) {
-    const validation = this.validateChildren(this.gameState.programBlocks);
+    const programBlocks = this.getProgramBlocks();
+    return this.toCommandsFromBlocks(programBlocks, maxCommands);
+  }
+
+  toCommandsForDrone(droneIndex, maxCommands = MAX_COMMANDS) {
+    const programBlocks = this.getProgramBlocksForDrone(droneIndex);
+    return this.toCommandsFromBlocks(programBlocks, maxCommands);
+  }
+
+  toCommandsFromBlocks(programBlocks, maxCommands = MAX_COMMANDS) {
+    const validation = this.validateChildren(programBlocks);
     if (!validation.ok) {
       return validation;
     }
 
-    const estimatedCount = this.estimateCommandCount(this.gameState.programBlocks);
+    const estimatedCount = this.estimateCommandCount(programBlocks);
 
     if (estimatedCount > maxCommands) {
       return { ok: false, message: '명령이 너무 많습니다. 더 짧은 프로그램을 만들어 주세요.' };
@@ -91,7 +101,7 @@ export class BlockProgram {
 
     return {
       ok: true,
-      commands: this.buildCommands(this.gameState.programBlocks),
+      commands: this.buildCommands(programBlocks),
       estimatedCount,
     };
   }
@@ -159,7 +169,7 @@ export class BlockProgram {
   }
 
   getBlocks() {
-    return this.decorateBlocks(this.gameState.programBlocks);
+    return this.decorateBlocks(this.getProgramBlocks());
   }
 
   decorateBlocks(programBlocks) {
@@ -174,10 +184,10 @@ export class BlockProgram {
 
   getSelectedContainer() {
     const selected = this.findBlock(this.gameState.selectedContainerId);
-    return selected?.children ?? this.gameState.programBlocks;
+    return selected?.children ?? this.getProgramBlocks();
   }
 
-  findBlock(programBlockId, blocks = this.gameState.programBlocks) {
+  findBlock(programBlockId, blocks = this.getProgramBlocks()) {
     if (!programBlockId) return null;
 
     for (const block of blocks) {
@@ -190,7 +200,7 @@ export class BlockProgram {
     return null;
   }
 
-  findLocation(programBlockId, container = this.gameState.programBlocks) {
+  findLocation(programBlockId, container = this.getProgramBlocks()) {
     for (let index = 0; index < container.length; index += 1) {
       const block = container[index];
       if (block.id === programBlockId) {
@@ -202,6 +212,26 @@ export class BlockProgram {
     }
 
     return null;
+  }
+
+  getProgramBlocks() {
+    const droneIndex = this.gameState.selectedDroneIndex ?? 0;
+    return this.getProgramBlocksForDrone(droneIndex);
+  }
+
+  getProgramBlocksForDrone(droneIndex = 0) {
+    if (!Array.isArray(this.gameState.dronePrograms)) {
+      this.gameState.dronePrograms = [];
+    }
+
+    if (!Array.isArray(this.gameState.dronePrograms[droneIndex])) {
+      this.gameState.dronePrograms[droneIndex] = droneIndex === 0
+        ? this.gameState.programBlocks ?? []
+        : [];
+    }
+
+    this.gameState.programBlocks = this.gameState.dronePrograms[0] ?? [];
+    return this.gameState.dronePrograms[droneIndex];
   }
 }
 

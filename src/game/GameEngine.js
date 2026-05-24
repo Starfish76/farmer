@@ -48,6 +48,8 @@ export class GameEngine {
       logs: [],
       purchasedBlocks: [],
       programBlocks: [],
+      dronePrograms: [[]],
+      selectedDroneIndex: 0,
       selectedContainerId: null,
       unlockedBlocks: [],
       upgradePurchases: {},
@@ -71,11 +73,14 @@ export class GameEngine {
       gameState: this.gameState,
       ui: this.ui,
     });
+    this.executor.canMoveTo = (x, y, robot) => !this.isDroneOccupying(x, y, robot);
 
     this.activeCommand = null;
     this.state = GAME_STATE.STOPPED;
+    this.droneRunStates = [];
     this.isDraggingDrone = false;
     this.draggingDroneIndex = null;
+    this.extraRobots = [];
     this.lastTick = 0;
     this.lastSellPanelRenderAt = 0;
     this.tickInterval = 250;
@@ -114,6 +119,8 @@ export class GameEngine {
         coinsOverride: savedData?.coins,
         cropInventoryOverride: savedData?.cropInventory,
         purchasedBlocksOverride: savedData?.purchasedBlocks,
+        droneProgramsOverride: savedData?.dronePrograms,
+        selectedDroneIndexOverride: savedData?.selectedDroneIndex,
         upgradePurchasesOverride: savedData?.upgradePurchases,
         droneCountOverride: savedData?.droneCount,
         extraDronePositionsOverride: savedData?.extraDronePositions,
@@ -146,12 +153,14 @@ export class GameEngine {
       if (!drone) return;
       if (this.state === GAME_STATE.RUNNING || this.robot.isAnimating) return;
 
+      const droneIndex = Number.parseInt(drone.dataset.droneIndex, 10);
+      this.selectDrone(droneIndex);
       const containerRect = container.getBoundingClientRect();
       const currentX = parseFloat(drone.style.left) || 0;
       const currentY = parseFloat(drone.style.top) || 0;
       dragState = {
         drone,
-        droneIndex: Number.parseInt(drone.dataset.droneIndex, 10),
+        droneIndex,
         pointerId: event.pointerId,
         offsetX: currentX - (event.clientX - containerRect.left),
         offsetY: currentY - (event.clientY - containerRect.top),
@@ -186,7 +195,7 @@ export class GameEngine {
       dragState.drone.style.cursor = 'grab';
       dragState.drone.style.zIndex = dragState.droneIndex === 0 ? '2' : '1';
 
-      if (tile?.type === 'soil') {
+      if (tile?.type === 'soil' && !this.isDroneOccupying(target.x, target.y, this.getRobotByDroneIndex(dragState.droneIndex))) {
         this.moveDroneToGrid(dragState.droneIndex, target.x, target.y);
         this.queue.clear();
         this.activeCommand = null;
@@ -215,6 +224,8 @@ export class GameEngine {
   }
 
   moveDroneToGrid(droneIndex, x, y) {
+    this.selectDrone(droneIndex);
+
     if (droneIndex === 0) {
       this.robot.reset({ x, y, direction: this.robot.dir });
       return;
@@ -227,6 +238,7 @@ export class GameEngine {
       this.robot,
     );
     this.gameState.extraDronePositions[droneIndex - 1] = { x, y };
+    this.syncExtraRobotsFromState();
   }
 
   snapDraggedDroneToGrid(drone, x, y) {
@@ -240,6 +252,84 @@ export class GameEngine {
     dragState.drone.style.top = `${dragState.startY}px`;
   }
 
+  selectDrone(droneIndex) {
+    const nextIndex = normalizeSelectedDroneIndex(droneIndex, this.gameState.droneCount);
+    if (this.gameState.selectedDroneIndex === nextIndex) return;
+
+    this.gameState.selectedDroneIndex = nextIndex;
+    this.blockProgram.selectMainProgram();
+    this.renderPanels();
+    this.saveProgress();
+  }
+
+  ensureDronePrograms() {
+    this.gameState.dronePrograms = normalizeDronePrograms(
+      this.gameState.dronePrograms,
+      this.gameState.programBlocks,
+      this.gameState.droneCount,
+    );
+    this.gameState.programBlocks = this.gameState.dronePrograms[0];
+  }
+
+  syncExtraRobotsFromState() {
+    const extraCount = Math.max(0, normalizeDroneCount(this.gameState.droneCount) - 1);
+
+    while (this.extraRobots.length < extraCount) {
+      this.extraRobots.push(new Robot());
+    }
+
+    while (this.extraRobots.length > extraCount) {
+      this.extraRobots.pop();
+    }
+
+    this.gameState.extraDronePositions = normalizeExtraDronePositions(
+      this.gameState.extraDronePositions,
+      this.gameState.droneCount,
+      this.world,
+      this.robot,
+    );
+
+    for (let index = 0; index < this.extraRobots.length; index += 1) {
+      const position = this.gameState.extraDronePositions[index] ?? { x: 0, y: 0 };
+      const robot = this.extraRobots[index];
+      if (robot.isAnimating) continue;
+      robot.reset({ x: position.x, y: position.y, direction: robot.dir ?? 'east' });
+    }
+  }
+
+  syncExtraDronePositionsFromRobots({ force = false } = {}) {
+    if (this.state === GAME_STATE.RUNNING && !force) {
+      return;
+    }
+
+    this.gameState.extraDronePositions = this.extraRobots.map((robot) => ({
+      x: robot.gridX,
+      y: robot.gridY,
+    }));
+  }
+
+  getSelectedRobot() {
+    const selectedIndex = normalizeSelectedDroneIndex(
+      this.gameState.selectedDroneIndex,
+      this.gameState.droneCount,
+    );
+    return selectedIndex === 0 ? this.robot : this.extraRobots[selectedIndex - 1];
+  }
+
+  getRobotByDroneIndex(droneIndex) {
+    return droneIndex === 0 ? this.robot : this.extraRobots[droneIndex - 1];
+  }
+
+  isDroneOccupying(x, y, ignoredRobot = null) {
+    const robots = [this.robot, ...this.extraRobots];
+    return robots.some((robot) => (
+      robot &&
+      robot !== ignoredRobot &&
+      robot.gridX === x &&
+      robot.gridY === y
+    ));
+  }
+
   restoreSavedState() {
     const savedData = this.storage.load();
     if (!savedData) return null;
@@ -249,6 +339,8 @@ export class GameEngine {
     this.gameState.currentLevel = this.levelManager.currentLevel.id;
     this.gameState.coins = Number.isFinite(savedData.coins) ? savedData.coins : this.levelManager.currentLevel.initialCoins;
     this.gameState.purchasedBlocks = Array.isArray(savedData.purchasedBlocks) ? [...savedData.purchasedBlocks] : [];
+    this.gameState.dronePrograms = normalizeDronePrograms(savedData.dronePrograms, savedData.programBlocks);
+    this.gameState.programBlocks = this.gameState.dronePrograms[0];
     this.gameState.highestUnlockedLevel = savedData.highestUnlockedLevel ?? this.gameState.currentLevel;
     this.gameState.completedLevels = Array.isArray(savedData.completedLevels) ? [...savedData.completedLevels] : [];
     this.gameState.mainGameStarted = savedData.mainGameStarted === true;
@@ -259,6 +351,10 @@ export class GameEngine {
       : Date.now() + MARKET_PRICE_UPDATE_INTERVAL_MS;
     this.gameState.upgradePurchases = normalizeUpgradePurchases(savedData.upgradePurchases);
     this.gameState.droneCount = normalizeDroneCount(savedData.droneCount);
+    this.gameState.selectedDroneIndex = normalizeSelectedDroneIndex(
+      savedData.selectedDroneIndex,
+      this.gameState.droneCount,
+    );
     this.gameState.extraDronePositions = normalizeExtraDronePositions(
       savedData.extraDronePositions,
       this.gameState.droneCount,
@@ -279,12 +375,15 @@ export class GameEngine {
     });
     this.queue.clear();
     this.activeCommand = null;
+    this.droneRunStates = [];
     this.blockProgram.clear();
     this.gameState.currentLevel = level.id;
     this.gameState.levelComplete = false;
     this.gameState.harvestedWheatCount = 0;
     this.gameState.cropInventory = createDefaultCropInventory();
     this.gameState.unlockedBlocks = [...level.unlockedBlocks];
+    this.gameState.dronePrograms = [this.gameState.programBlocks];
+    this.gameState.selectedDroneIndex = 0;
     this.gameState.upgradePurchases = {};
     this.gameState.droneCount = 1;
     this.gameState.extraDronePositions = [];
@@ -344,12 +443,14 @@ export class GameEngine {
     }
 
     this.gameState.droneCount = normalizeDroneCount(this.gameState.droneCount) + 1;
+    this.ensureDronePrograms();
     this.gameState.extraDronePositions = normalizeExtraDronePositions(
       this.gameState.extraDronePositions,
       this.gameState.droneCount,
       this.world,
       this.robot,
     );
+    this.syncExtraRobotsFromState();
     return { ok: true, message: '드론을 추가로 생성했습니다.' };
   }
 
@@ -411,6 +512,7 @@ export class GameEngine {
     this.blockProgram.clear();
     this.queue.clear();
     this.activeCommand = null;
+    this.droneRunStates = [];
     this.renderPanels();
     this.ui.addLog('프로그램을 비웠습니다.');
   }
@@ -441,17 +543,17 @@ export class GameEngine {
   startRun() {
     if (this.state === GAME_STATE.RUNNING) return;
 
-    if (!this.loadProgramCommands()) {
+    if (!this.loadAllDronePrograms()) {
       return;
     }
 
     this.setState(GAME_STATE.RUNNING);
-    this.lastTick = 0;
     this.ui.addLog('프로그램 실행을 시작합니다.');
   }
 
   step() {
-    if (this.robot.isAnimating || this.activeCommand) return;
+    this.executor.robot = this.getSelectedRobot();
+    if (this.getSelectedRobot()?.isAnimating || this.activeCommand) return;
 
     if (this.queue.isEmpty()) {
       if (!this.loadProgramCommands()) {
@@ -467,6 +569,8 @@ export class GameEngine {
   stop() {
     if (this.state !== GAME_STATE.STOPPED) {
       this.activeCommand = null;
+      this.droneRunStates = [];
+      this.syncExtraDronePositionsFromRobots({ force: true });
       this.setState(GAME_STATE.PAUSED);
       this.ui.addLog('프로그램을 일시정지했습니다.');
     }
@@ -541,14 +645,22 @@ export class GameEngine {
     this.gameState.harvestedWheatCount = 0;
     this.gameState.cropInventory = normalizeCropInventory(options.cropInventoryOverride);
     this.gameState.purchasedBlocks = normalizeMainGamePurchasedBlocks(options.purchasedBlocksOverride);
+    this.gameState.dronePrograms = normalizeDronePrograms(options.droneProgramsOverride, this.gameState.programBlocks);
+    this.gameState.programBlocks = this.gameState.dronePrograms[0];
     this.gameState.upgradePurchases = normalizeUpgradePurchases(options.upgradePurchasesOverride);
     this.gameState.droneCount = normalizeDroneCount(options.droneCountOverride);
+    this.gameState.selectedDroneIndex = normalizeSelectedDroneIndex(
+      options.selectedDroneIndexOverride,
+      this.gameState.droneCount,
+    );
+    this.ensureDronePrograms();
     this.gameState.extraDronePositions = normalizeExtraDronePositions(
       options.extraDronePositionsOverride,
       this.gameState.droneCount,
       this.world,
       this.robot,
     );
+    this.syncExtraRobotsFromState();
     this.gameState.unlockedBlocks = [
       'move',
       'turn_left',
@@ -573,6 +685,47 @@ export class GameEngine {
     }
   }
 
+  loadAllDronePrograms() {
+    this.ensureDronePrograms();
+    this.syncExtraRobotsFromState();
+    this.droneRunStates = [];
+
+    for (let droneIndex = 0; droneIndex < this.gameState.droneCount; droneIndex += 1) {
+      const result = this.blockProgram.toCommandsForDrone(droneIndex);
+
+      if (!result.ok) {
+        this.ui.addLog(`드론 ${droneIndex + 1}: ${result.message}`);
+        this.droneRunStates = [];
+        return false;
+      }
+
+      if (result.commands.length === 0) {
+        continue;
+      }
+
+      const queue = new CommandQueue();
+      for (const command of result.commands) {
+        queue.push({ ...command });
+      }
+
+      this.droneRunStates.push({
+        droneIndex,
+        robot: droneIndex === 0 ? this.robot : this.extraRobots[droneIndex - 1],
+        queue,
+        activeCommand: null,
+        lastTick: 0,
+        done: false,
+      });
+    }
+
+    if (this.droneRunStates.length === 0) {
+      this.ui.addLog('실행할 드론 프로그램이 없습니다.');
+      return false;
+    }
+
+    return true;
+  }
+
   loadProgramCommands() {
     const result = this.blockProgram.toCommands();
 
@@ -595,7 +748,8 @@ export class GameEngine {
   }
 
   executeNext(time) {
-    if (this.robot.isAnimating || this.activeCommand) return;
+    this.executor.robot = this.getSelectedRobot();
+    if (this.getSelectedRobot()?.isAnimating || this.activeCommand) return;
 
     if (this.queue.isEmpty()) {
       this.finishProgram();
@@ -629,21 +783,67 @@ export class GameEngine {
     }
   }
 
+  executeDroneRunState(runState, time) {
+    if (runState.done || runState.robot?.isAnimating || runState.activeCommand) return;
+
+    if (runState.queue.isEmpty()) {
+      runState.done = true;
+      return;
+    }
+
+    this.executor.robot = runState.robot;
+    const command = runState.queue.pop();
+    const result = this.executor.execute(command, time);
+
+    if (result.status === 'waiting') {
+      runState.activeCommand = {
+        type: 'wait',
+        endsAt: result.endsAt,
+      };
+    } else if (result.status === 'enqueue') {
+      runState.queue.insertFront(result.commands);
+    } else if (result.status === 'error') {
+      runState.done = true;
+      this.setState(GAME_STATE.ERROR);
+    }
+
+    if (!runState.activeCommand && runState.queue.isEmpty()) {
+      runState.done = true;
+    }
+  }
+
+  updateDroneRunStates(time) {
+    if (this.state !== GAME_STATE.RUNNING) return;
+
+    for (const runState of this.droneRunStates) {
+      if (
+        !runState.done &&
+        !runState.robot?.isAnimating &&
+        !runState.activeCommand &&
+        time - runState.lastTick >= this.tickInterval
+      ) {
+        this.executeDroneRunState(runState, time);
+        runState.lastTick = time;
+      }
+    }
+
+    if (this.droneRunStates.length > 0 && this.droneRunStates.every((runState) => runState.done)) {
+      this.finishProgram();
+    }
+  }
+
   update(time) {
     this.robot.update(time);
+    for (const robot of this.extraRobots) {
+      robot.update(time);
+    }
+    this.syncExtraDronePositionsFromRobots();
     this.world.updateAllCrops(time);
     this.updateActiveCommand(time);
+    this.updateDroneActiveCommands(time);
     this.updateMarketPrices(Date.now());
 
-    if (
-      this.state === GAME_STATE.RUNNING &&
-      !this.robot.isAnimating &&
-      !this.activeCommand &&
-      time - this.lastTick >= this.tickInterval
-    ) {
-      this.executeNext(time);
-      this.lastTick = time;
-    }
+    this.updateDroneRunStates(time);
 
     this.checkLevelComplete();
     this.render();
@@ -702,11 +902,28 @@ export class GameEngine {
     }
   }
 
+  updateDroneActiveCommands(time) {
+    for (const runState of this.droneRunStates) {
+      if (!runState.activeCommand) continue;
+
+      if (time >= runState.activeCommand.endsAt) {
+        runState.activeCommand = null;
+        runState.lastTick = time;
+
+        if (runState.queue.isEmpty()) {
+          runState.done = true;
+        }
+      }
+    }
+  }
+
   finishProgram() {
     if (this.state === GAME_STATE.RUNNING || this.state === GAME_STATE.PAUSED) {
       this.setState(GAME_STATE.STOPPED);
     }
 
+    this.syncExtraDronePositionsFromRobots({ force: true });
+    this.droneRunStates = [];
     this.ui.addLog('프로그램 실행이 끝났습니다.');
   }
 
@@ -724,6 +941,7 @@ export class GameEngine {
       );
       this.queue.clear();
       this.activeCommand = null;
+      this.droneRunStates = [];
       this.setState(GAME_STATE.SUCCESS);
       if (!this.gameState.mainGameStarted) {
         this.renderer.triggerFireworks();
@@ -761,7 +979,7 @@ export class GameEngine {
       this.gameState.mainGameStarted ? null : this.levelManager.currentLevel,
     );
     if (this.draggingDroneIndex !== 0) {
-      this.renderer.renderRobot(this.robot);
+      this.renderer.renderRobot(this.robot, this.gameState.selectedDroneIndex === 0);
     }
     this.renderer.renderExtraDrones(
       this.world,
@@ -769,11 +987,15 @@ export class GameEngine {
       this.gameState.droneCount,
       this.gameState.extraDronePositions,
       this.draggingDroneIndex,
+      this.extraRobots,
+      this.gameState.selectedDroneIndex,
     );
   }
 
   saveProgress() {
     if (this.gameState.mainGameStarted) {
+      this.ensureDronePrograms();
+      this.syncExtraDronePositionsFromRobots({ force: true });
       this.gameState.mainWorldGrid = this.world.serializeGrid();
       this.gameState.robotPosition = {
         x: this.robot.gridX,
@@ -845,6 +1067,30 @@ function normalizeDroneCount(savedCount = 1) {
   return Number.isFinite(savedCount) ? Math.max(1, Math.floor(savedCount)) : 1;
 }
 
+function normalizeSelectedDroneIndex(savedIndex = 0, droneCount = 1) {
+  const maxIndex = Math.max(0, normalizeDroneCount(droneCount) - 1);
+  return Number.isFinite(savedIndex)
+    ? Math.max(0, Math.min(maxIndex, Math.floor(savedIndex)))
+    : 0;
+}
+
+function normalizeDronePrograms(savedPrograms = null, fallbackProgramBlocks = [], droneCount = 1) {
+  const count = normalizeDroneCount(droneCount);
+  const programs = Array.from({ length: count }, () => []);
+
+  if (Array.isArray(savedPrograms)) {
+    for (let index = 0; index < Math.min(savedPrograms.length, count); index += 1) {
+      programs[index] = Array.isArray(savedPrograms[index])
+        ? savedPrograms[index]
+        : [];
+    }
+  } else if (Array.isArray(fallbackProgramBlocks)) {
+    programs[0] = fallbackProgramBlocks;
+  }
+
+  return programs;
+}
+
 function normalizeExtraDronePositions(savedPositions = [], droneCount = 1, world = null, robot = null) {
   const extraCount = Math.max(0, normalizeDroneCount(droneCount) - 1);
   const positions = [];
@@ -859,8 +1105,13 @@ function normalizeExtraDronePositions(savedPositions = [], droneCount = 1, world
       position.x === normalizedSavedPosition.x &&
       position.y === normalizedSavedPosition.y
     ));
+    const isOverlappingExtraDrone = positions.some((position) => (
+      normalizedSavedPosition &&
+      position.x === normalizedSavedPosition.x &&
+      position.y === normalizedSavedPosition.y
+    ));
 
-    const nextPosition = normalizedSavedPosition && !isOverlappingMainDrone
+    const nextPosition = normalizedSavedPosition && !isOverlappingMainDrone && !isOverlappingExtraDrone
       ? normalizedSavedPosition
       : findDefaultExtraDronePosition(world, [...occupiedPositions, ...positions]);
     positions.push(nextPosition);
