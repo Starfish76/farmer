@@ -274,7 +274,10 @@ export class Renderer {
       element.style.width = `${TILE_W * 1.25}px`;
       element.style.height = `${TILE_W * 1.25}px`;
       element.style.opacity = '1';
-      element.style.setProperty('--drone-facing', '-1');
+      const shouldFaceRight = extraRobot
+        ? extraRobot.dir === DIRECTIONS.EAST || extraRobot.dir === DIRECTIONS.NORTH
+        : true;
+      element.style.setProperty('--drone-facing', shouldFaceRight ? '-1' : '1');
       element.style.zIndex = selectedDroneIndex === index + 1 ? '3' : '1';
       element.style.filter = selectedDroneIndex === index + 1 ? 'drop-shadow(0 0 12px #facc15)' : '';
     }

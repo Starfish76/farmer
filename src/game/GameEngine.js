@@ -807,7 +807,7 @@ export class GameEngine {
       this.setState(GAME_STATE.ERROR);
     }
 
-    if (!runState.activeCommand && runState.queue.isEmpty()) {
+    if (!runState.activeCommand && runState.queue.isEmpty() && !runState.robot?.isAnimating) {
       runState.done = true;
     }
   }
@@ -824,6 +824,12 @@ export class GameEngine {
       ) {
         this.executeDroneRunState(runState, time);
         runState.lastTick = time;
+      }
+    }
+
+    for (const runState of this.droneRunStates) {
+      if (!runState.done && runState.queue.isEmpty() && !runState.activeCommand && !runState.robot?.isAnimating) {
+        runState.done = true;
       }
     }
 
