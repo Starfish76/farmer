@@ -105,7 +105,7 @@ export class ShopPanel {
 }
 
 function getShopGroup(block) {
-  if (block.category === 'Movement') return 'Movement';
+  if (block.category === 'Upgrade') return 'Upgrade';
   if (block.repeatCount) return 'Loop';
   if (block.conditionType) return 'Condition';
   return 'Action';
@@ -113,8 +113,8 @@ function getShopGroup(block) {
 
 function getShopGroupLabel(block) {
   const group = getShopGroup(block);
-  if (group === 'Movement') return '이동';
+  if (group === 'Upgrade') return '확장';
   if (group === 'Loop') return '반복';
   if (group === 'Condition') return '조건';
-  return block.repeatable ? '확장' : '작업';
+  return '작업';
 }

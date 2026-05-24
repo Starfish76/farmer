@@ -1,7 +1,7 @@
 import { DIRECTIONS, TILE_COLORS, TILE_H, TILE_W } from '../constants.js';
 import { CROPS } from './Crop.js';
 import { drawPolygon } from '../utils/helpers.js';
-import { gridToScreen } from '../utils/isometric.js';
+import { gridToScreen, screenToGrid } from '../utils/isometric.js';
 
 export class Renderer {
   constructor(canvas) {
@@ -33,6 +33,7 @@ export class Renderer {
       animation: 'drone-hover 2.4s ease-in-out infinite',
       zIndex: '2',
     });
+    drone.draggable = false;
     this.canvas.parentElement.appendChild(drone);
     return drone;
   }
@@ -216,10 +217,13 @@ export class Renderer {
 
   renderRobot(robot) {
     const { x: sx, y: sy } = gridToScreen(robot.animX, robot.animY, this.offsetX, this.offsetY);
+    this.droneElement.dataset.droneIndex = '0';
+    this.droneElement.style.pointerEvents = 'auto';
+    this.droneElement.style.cursor = 'grab';
     this.positionDroneElement(robot, sx, sy);
   }
 
-  renderExtraDrones(world, robot, droneCount = 1) {
+  renderExtraDrones(world, robot, droneCount = 1, extraDronePositions = [], draggingDroneIndex = null) {
     const extraCount = Math.max(0, droneCount - 1);
 
     while (this.extraDroneElements.length < extraCount) {
@@ -244,11 +248,17 @@ export class Renderer {
 
     for (let index = 0; index < this.extraDroneElements.length; index += 1) {
       const element = this.extraDroneElements[index];
-      const tile = tiles[index % Math.max(1, tiles.length)] ?? { x: robot.gridX, y: robot.gridY };
+      const savedPosition = extraDronePositions[index];
+      const tile = savedPosition ?? tiles[index % Math.max(1, tiles.length)] ?? { x: robot.gridX, y: robot.gridY };
       const { x: sx, y: sy } = gridToScreen(tile.x, tile.y, this.offsetX, this.offsetY);
       const offset = tiles.length > 0 ? 0 : (index + 1) * 12;
-      element.style.left = `${sx + offset}px`;
-      element.style.top = `${sy + TILE_H / 2 - 28 - offset}px`;
+      element.dataset.droneIndex = `${index + 1}`;
+      element.style.pointerEvents = 'auto';
+      element.style.cursor = 'grab';
+      if (draggingDroneIndex !== index + 1) {
+        element.style.left = `${sx + offset}px`;
+        element.style.top = `${sy + TILE_H / 2 - 28 - offset}px`;
+      }
       element.style.width = `${TILE_W * 1.25}px`;
       element.style.height = `${TILE_W * 1.25}px`;
       element.style.opacity = '1';
@@ -268,6 +278,38 @@ export class Renderer {
     this.droneElement.style.left = `${centerX}px`;
     this.droneElement.style.top = `${centerY}px`;
     this.droneElement.style.setProperty('--drone-facing', shouldFaceRight ? '-1' : '1');
+  }
+
+  getGridPositionFromDroneCenter(centerX, centerY) {
+    return screenToGrid(centerX, centerY - TILE_H / 2 + 28, this.offsetX, this.offsetY);
+  }
+
+  getGridPositionFromScreenPoint(screenX, screenY, world) {
+    for (let y = 0; y < world.height; y += 1) {
+      for (let x = 0; x < world.width; x += 1) {
+        const tile = world.getTile(x, y);
+        if (tile?.type !== 'soil') continue;
+
+        const { x: tileX, y: tileY } = gridToScreen(x, y, this.offsetX, this.offsetY);
+        const centerY = tileY + TILE_H / 2;
+        const normalizedX = Math.abs(screenX - tileX) / (TILE_W / 2);
+        const normalizedY = Math.abs(screenY - centerY) / (TILE_H / 2);
+
+        if (normalizedX + normalizedY <= 1) {
+          return { x, y };
+        }
+      }
+    }
+
+    return null;
+  }
+
+  getDroneCenterFromGrid(gridX, gridY) {
+    const { x, y } = gridToScreen(gridX, gridY, this.offsetX, this.offsetY);
+    return {
+      x,
+      y: y + TILE_H / 2 - 28,
+    };
   }
 
   triggerFireworks() {

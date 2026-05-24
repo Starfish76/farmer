@@ -23,6 +23,8 @@ export class StorageManager {
         purchasedBlocks: gameState.purchasedBlocks,
         upgradePurchases: gameState.upgradePurchases,
         droneCount: gameState.droneCount,
+        extraDronePositions: gameState.extraDronePositions,
+        robotPosition: gameState.robotPosition,
         mainWorldGrid: gameState.mainWorldGrid,
         highestUnlockedLevel: gameState.highestUnlockedLevel,
         completedLevels: gameState.completedLevels,

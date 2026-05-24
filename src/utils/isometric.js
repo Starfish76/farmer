@@ -6,3 +6,13 @@ export function gridToScreen(gridX, gridY, offsetX, offsetY) {
   const screenY = (gridX + gridY) * (TILE_H / 2) + offsetY;
   return { x: screenX, y: screenY };
 }
+
+export function screenToGrid(screenX, screenY, offsetX, offsetY) {
+  const isoX = (screenX - offsetX) / (TILE_W / 2);
+  const isoY = (screenY - offsetY) / (TILE_H / 2);
+
+  return {
+    x: Math.round((isoX + isoY) / 2),
+    y: Math.round((isoY - isoX) / 2),
+  };
+}

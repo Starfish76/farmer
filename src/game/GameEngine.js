@@ -52,6 +52,7 @@ export class GameEngine {
       unlockedBlocks: [],
       upgradePurchases: {},
       droneCount: 1,
+      extraDronePositions: [],
     };
 
     this.ui = new UIManager(this.gameState);
@@ -73,6 +74,8 @@ export class GameEngine {
 
     this.activeCommand = null;
     this.state = GAME_STATE.STOPPED;
+    this.isDraggingDrone = false;
+    this.draggingDroneIndex = null;
     this.lastTick = 0;
     this.lastSellPanelRenderAt = 0;
     this.tickInterval = 250;
@@ -104,6 +107,7 @@ export class GameEngine {
     });
 
     this.initButtons();
+    this.initDroneDrag();
     if (this.gameState.mainGameStarted) {
       this.startMainGame({
         save: false,
@@ -112,6 +116,8 @@ export class GameEngine {
         purchasedBlocksOverride: savedData?.purchasedBlocks,
         upgradePurchasesOverride: savedData?.upgradePurchases,
         droneCountOverride: savedData?.droneCount,
+        extraDronePositionsOverride: savedData?.extraDronePositions,
+        robotPositionOverride: savedData?.robotPosition,
         worldGridOverride: savedData?.mainWorldGrid,
       });
     } else {
@@ -126,9 +132,112 @@ export class GameEngine {
 
   initButtons() {
     document.getElementById('btn-run').addEventListener('click', () => this.startRun());
-    document.getElementById('btn-step').addEventListener('click', () => this.step());
+    document.getElementById('btn-step')?.addEventListener('click', () => this.step());
     document.getElementById('btn-stop').addEventListener('click', () => this.stop());
     document.getElementById('btn-reset')?.addEventListener('click', () => this.resetRobotToStart());
+  }
+
+  initDroneDrag() {
+    const container = this.canvas.parentElement;
+    let dragState = null;
+
+    container.addEventListener('pointerdown', (event) => {
+      const drone = event.target.closest('[data-drone-index]');
+      if (!drone) return;
+      if (this.state === GAME_STATE.RUNNING || this.robot.isAnimating) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const currentX = parseFloat(drone.style.left) || 0;
+      const currentY = parseFloat(drone.style.top) || 0;
+      dragState = {
+        drone,
+        droneIndex: Number.parseInt(drone.dataset.droneIndex, 10),
+        pointerId: event.pointerId,
+        offsetX: currentX - (event.clientX - containerRect.left),
+        offsetY: currentY - (event.clientY - containerRect.top),
+        startX: currentX,
+        startY: currentY,
+      };
+
+      drone.setPointerCapture(event.pointerId);
+      drone.style.cursor = 'grabbing';
+      drone.style.zIndex = '5';
+      this.isDraggingDrone = true;
+      this.draggingDroneIndex = dragState.droneIndex;
+      event.preventDefault();
+    });
+
+    container.addEventListener('pointermove', (event) => {
+      if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+      const containerRect = container.getBoundingClientRect();
+      dragState.drone.style.left = `${event.clientX - containerRect.left + dragState.offsetX}px`;
+      dragState.drone.style.top = `${event.clientY - containerRect.top + dragState.offsetY}px`;
+    });
+
+    const finishDrag = (event) => {
+      if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+      const pointer = this.getCanvasRelativePointer(event);
+      const target = this.renderer.getGridPositionFromScreenPoint(pointer.x, pointer.y, this.world);
+      const tile = target ? this.world.getTile(target.x, target.y) : null;
+
+      dragState.drone.releasePointerCapture(event.pointerId);
+      dragState.drone.style.cursor = 'grab';
+      dragState.drone.style.zIndex = dragState.droneIndex === 0 ? '2' : '1';
+
+      if (tile?.type === 'soil') {
+        this.moveDroneToGrid(dragState.droneIndex, target.x, target.y);
+        this.queue.clear();
+        this.activeCommand = null;
+        this.setState(GAME_STATE.STOPPED);
+        this.saveProgress();
+        this.snapDraggedDroneToGrid(dragState.drone, target.x, target.y);
+      } else {
+        this.snapDraggedDroneBack(dragState);
+      }
+
+      this.isDraggingDrone = false;
+      this.draggingDroneIndex = null;
+      dragState = null;
+    };
+
+    container.addEventListener('pointerup', finishDrag);
+    container.addEventListener('pointercancel', finishDrag);
+  }
+
+  getCanvasRelativePointer(event) {
+    const containerRect = this.canvas.parentElement.getBoundingClientRect();
+    return {
+      x: event.clientX - containerRect.left,
+      y: event.clientY - containerRect.top,
+    };
+  }
+
+  moveDroneToGrid(droneIndex, x, y) {
+    if (droneIndex === 0) {
+      this.robot.reset({ x, y, direction: this.robot.dir });
+      return;
+    }
+
+    this.gameState.extraDronePositions = normalizeExtraDronePositions(
+      this.gameState.extraDronePositions,
+      this.gameState.droneCount,
+      this.world,
+      this.robot,
+    );
+    this.gameState.extraDronePositions[droneIndex - 1] = { x, y };
+  }
+
+  snapDraggedDroneToGrid(drone, x, y) {
+    const position = this.renderer.getDroneCenterFromGrid(x, y);
+    drone.style.left = `${position.x}px`;
+    drone.style.top = `${position.y}px`;
+  }
+
+  snapDraggedDroneBack(dragState) {
+    dragState.drone.style.left = `${dragState.startX}px`;
+    dragState.drone.style.top = `${dragState.startY}px`;
   }
 
   restoreSavedState() {
@@ -150,6 +259,12 @@ export class GameEngine {
       : Date.now() + MARKET_PRICE_UPDATE_INTERVAL_MS;
     this.gameState.upgradePurchases = normalizeUpgradePurchases(savedData.upgradePurchases);
     this.gameState.droneCount = normalizeDroneCount(savedData.droneCount);
+    this.gameState.extraDronePositions = normalizeExtraDronePositions(
+      savedData.extraDronePositions,
+      this.gameState.droneCount,
+      null,
+      null,
+    );
     return savedData;
   }
 
@@ -172,6 +287,7 @@ export class GameEngine {
     this.gameState.unlockedBlocks = [...level.unlockedBlocks];
     this.gameState.upgradePurchases = {};
     this.gameState.droneCount = 1;
+    this.gameState.extraDronePositions = [];
     this.economy.setCoins(options.coinsOverride ?? level.initialCoins);
     this.blockShop.ensureFreeBlocksOwned();
     this.setState(GAME_STATE.STOPPED);
@@ -228,6 +344,12 @@ export class GameEngine {
     }
 
     this.gameState.droneCount = normalizeDroneCount(this.gameState.droneCount) + 1;
+    this.gameState.extraDronePositions = normalizeExtraDronePositions(
+      this.gameState.extraDronePositions,
+      this.gameState.droneCount,
+      this.world,
+      this.robot,
+    );
     return { ok: true, message: '드론을 추가로 생성했습니다.' };
   }
 
@@ -396,6 +518,7 @@ export class GameEngine {
     this.gameState.purchasedBlocks = [];
     this.gameState.upgradePurchases = {};
     this.gameState.droneCount = 1;
+    this.gameState.extraDronePositions = [];
     this.gameState.cropInventory = createDefaultCropInventory();
     this.gameState.cropPrices = createDefaultCropPrices();
     this.gameState.nextMarketPriceUpdateAt = Date.now() + MARKET_PRICE_UPDATE_INTERVAL_MS;
@@ -407,7 +530,8 @@ export class GameEngine {
 
   startMainGame(options = {}) {
     this.world.loadGrid(normalizeMainWorldGrid(options.worldGridOverride));
-    this.robot.reset({ x: 0, y: 0, direction: 'east' });
+    const robotPosition = normalizeRobotPosition(options.robotPositionOverride, this.world);
+    this.robot.reset(robotPosition);
     this.queue.clear();
     this.activeCommand = null;
     this.blockProgram.clear();
@@ -419,6 +543,12 @@ export class GameEngine {
     this.gameState.purchasedBlocks = normalizeMainGamePurchasedBlocks(options.purchasedBlocksOverride);
     this.gameState.upgradePurchases = normalizeUpgradePurchases(options.upgradePurchasesOverride);
     this.gameState.droneCount = normalizeDroneCount(options.droneCountOverride);
+    this.gameState.extraDronePositions = normalizeExtraDronePositions(
+      options.extraDronePositionsOverride,
+      this.gameState.droneCount,
+      this.world,
+      this.robot,
+    );
     this.gameState.unlockedBlocks = [
       'move',
       'turn_left',
@@ -630,13 +760,32 @@ export class GameEngine {
       this.world,
       this.gameState.mainGameStarted ? null : this.levelManager.currentLevel,
     );
-    this.renderer.renderRobot(this.robot);
-    this.renderer.renderExtraDrones(this.world, this.robot, this.gameState.droneCount);
+    if (this.draggingDroneIndex !== 0) {
+      this.renderer.renderRobot(this.robot);
+    }
+    this.renderer.renderExtraDrones(
+      this.world,
+      this.robot,
+      this.gameState.droneCount,
+      this.gameState.extraDronePositions,
+      this.draggingDroneIndex,
+    );
   }
 
   saveProgress() {
     if (this.gameState.mainGameStarted) {
       this.gameState.mainWorldGrid = this.world.serializeGrid();
+      this.gameState.robotPosition = {
+        x: this.robot.gridX,
+        y: this.robot.gridY,
+        direction: this.robot.dir,
+      };
+      this.gameState.extraDronePositions = normalizeExtraDronePositions(
+        this.gameState.extraDronePositions,
+        this.gameState.droneCount,
+        this.world,
+        this.robot,
+      );
     }
 
     this.storage.save(this.gameState);
@@ -696,6 +845,60 @@ function normalizeDroneCount(savedCount = 1) {
   return Number.isFinite(savedCount) ? Math.max(1, Math.floor(savedCount)) : 1;
 }
 
+function normalizeExtraDronePositions(savedPositions = [], droneCount = 1, world = null, robot = null) {
+  const extraCount = Math.max(0, normalizeDroneCount(droneCount) - 1);
+  const positions = [];
+  const saved = Array.isArray(savedPositions) ? savedPositions : [];
+  const occupiedPositions = robot ? [{ x: robot.gridX, y: robot.gridY }] : [];
+
+  for (let index = 0; index < extraCount; index += 1) {
+    const savedPosition = saved[index];
+    const normalizedSavedPosition = normalizeGridPosition(savedPosition, world);
+    const isOverlappingMainDrone = occupiedPositions.some((position) => (
+      normalizedSavedPosition &&
+      position.x === normalizedSavedPosition.x &&
+      position.y === normalizedSavedPosition.y
+    ));
+
+    const nextPosition = normalizedSavedPosition && !isOverlappingMainDrone
+      ? normalizedSavedPosition
+      : findDefaultExtraDronePosition(world, [...occupiedPositions, ...positions]);
+    positions.push(nextPosition);
+  }
+
+  return positions;
+}
+
+function normalizeGridPosition(position, world = null) {
+  if (!position || !Number.isFinite(position.x) || !Number.isFinite(position.y)) {
+    return null;
+  }
+
+  const x = Math.floor(position.x);
+  const y = Math.floor(position.y);
+  if (world && world.getTile(x, y)?.type !== 'soil') {
+    return null;
+  }
+
+  return { x, y };
+}
+
+function findDefaultExtraDronePosition(world, occupiedPositions = []) {
+  if (!world) return { x: 0, y: 0 };
+
+  for (let y = 0; y < world.height; y += 1) {
+    for (let x = 0; x < world.width; x += 1) {
+      const tile = world.getTile(x, y);
+      const isOccupied = occupiedPositions.some((position) => position.x === x && position.y === y);
+      if (tile?.type === 'soil' && !isOccupied) {
+        return { x, y };
+      }
+    }
+  }
+
+  return { x: 0, y: 0 };
+}
+
 function normalizeMainGamePurchasedBlocks(savedBlocks = []) {
   const purchasedBlocks = Array.isArray(savedBlocks) ? [...savedBlocks] : [];
 
@@ -706,6 +909,25 @@ function normalizeMainGamePurchasedBlocks(savedBlocks = []) {
   }
 
   return purchasedBlocks;
+}
+
+function normalizeRobotPosition(savedPosition, world) {
+  const fallback = { x: 0, y: 0, direction: 'east' };
+  if (!savedPosition) return fallback;
+
+  const x = Number.isFinite(savedPosition.x) ? savedPosition.x : fallback.x;
+  const y = Number.isFinite(savedPosition.y) ? savedPosition.y : fallback.y;
+  const tile = world.getTile(x, y);
+
+  if (tile?.type !== 'soil') {
+    return fallback;
+  }
+
+  return {
+    x,
+    y,
+    direction: Number.isFinite(savedPosition.direction) ? savedPosition.direction : fallback.direction,
+  };
 }
 
 function normalizeMainWorldGrid(savedGrid) {

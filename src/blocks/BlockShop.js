@@ -78,7 +78,9 @@ export class BlockShop {
   }
 
   getShopBlocks() {
-    return this.availableBlocks.filter((block) => this.isUnlocked(block.id));
+    return this.availableBlocks
+      .filter((block) => block.category !== 'Movement')
+      .filter((block) => this.isUnlocked(block.id));
   }
 
   getOwnedBlocks() {
